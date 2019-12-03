@@ -14,16 +14,33 @@
  *  x,y - koordinate centra kruga gornje leve celije.
  *  z,w - z koordinata prednje table, z-w zadnje
  *  radius - poluprecnik kruga svake celije
- * 
- *  Napomena -- trenutno nije podeseno osvetljenje ni materijal,
- *      koriste se placeholder boje.
 **/
 void drawBoard(float x, float y, float z, float w, float radius) {
-    glColor3f(0.5,0.5,0);
-    // crtaju se prednja i zadnja ploca
-    drawTable(x, y, z, radius);
-    glColor3f(0,0.5,0.5);
+    
+    // podesavanja za materijal
+    // zadnja ploca ce biti tamnija
+    GLfloat ambient_coeffs[] = {0, 0, 0, 1 };
+    GLfloat diffuse_coeffs[] = { 0, 0, 0.1, 1 };
+    GLfloat specular_coeffs[] = { 0, 0, 0, 1 };
+    GLfloat shininess = 0;
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
     drawTable(x, y, z-w, radius);
+
+    // ostali delovi su svetliji
+    GLfloat diffuse_coeffs2[] = { 0.1, 0.1, 0.4, 1 };
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs2);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    
+    // crta se prednja ploca
+    drawTable(x, y, z, radius);
 
     // Spajanje ploca unutrasnjim pregradama i spoljasnjim ivicama
     float border = radius/4;
@@ -31,39 +48,54 @@ void drawBoard(float x, float y, float z, float w, float radius) {
     float endX = startX + 14*radius + 8*border;
     float startY = y + radius + border;
     float endY = startY - 12*radius - 7*border;
-    glColor3f(0,0,0.75);
     
     glBegin(GL_POLYGON);
+        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, 0);
+        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, -w);
+        glNormal3f(endX, endY, 1);
         glVertex3f(endX, endY, -w);
+        glNormal3f(endX, endY, 1);
         glVertex3f(endX, endY, 0);
     glEnd();
     
     glBegin(GL_POLYGON);
-            glVertex3f(startX, startY, 0);
-            glVertex3f(startX, startY, -w);
-            glVertex3f(startX, endY, -w);
-            glVertex3f(startX, endY, 0);
+        glNormal3f(startX, startY, 1);
+        glVertex3f(startX, startY, 0);
+        glNormal3f(startX, startY, 1);
+        glVertex3f(startX, startY, -w);
+        glNormal3f(startX, endY, 1);
+        glVertex3f(startX, endY, -w);
+        glNormal3f(startX, endY, 1);
+        glVertex3f(startX, endY, 0);
     glEnd();
 
     startX += 2*radius + 3*border/2;
     int i;
     for(i=0; i<6; i++, startX += 2*radius + border) {
         glBegin(GL_POLYGON);
+            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, 0);
+            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, -w);
+            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, -w);
+            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, 0);
         glEnd();
     }
     
     startX += border/2;
     glBegin(GL_POLYGON);
-            glVertex3f(startX, startY, 0);
-            glVertex3f(startX, startY, -w);
-            glVertex3f(startX, endY, -w);
-            glVertex3f(startX, endY, 0);
+        glNormal3f(startX, startY, 1);
+        glVertex3f(startX, startY, 0);
+        glNormal3f(startX, startY, 1);
+        glVertex3f(startX, startY, -w);
+        glNormal3f(startX, endY, 1);
+        glVertex3f(startX, endY, -w);
+        glNormal3f(startX, endY, 1);
+        glVertex3f(startX, endY, 0);
     glEnd();
 }
 /** 
@@ -99,9 +131,13 @@ void drawTable(float x, float y, float z, float radius) {
     startY = radius + y, endY = startY - 12*radius - 5*width;
     for(i=0; i<8; i++) {
         glBegin(GL_POLYGON);
+            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, z);
+            glNormal3f(endX, startY, 1);
             glVertex3f(endX, startY, z);
+            glNormal3f(endX, endY, 1);
             glVertex3f(endX, endY, z);
+            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, z);
         glEnd();
         startX += 2*radius + width;
@@ -112,9 +148,13 @@ void drawTable(float x, float y, float z, float radius) {
     startY = y + radius + width, endY = startY - width;
     for(i=0; i<7; i++) {
         glBegin(GL_POLYGON);
+            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, z);
+            glNormal3f(endX, startY, 1);
             glVertex3f(endX, startY, z);
+            glNormal3f(endX, endY, 1);
             glVertex3f(endX, endY, z);
+            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, z);
         glEnd();
         startY -= (2*radius + width);
@@ -136,30 +176,42 @@ void drawCorners(float x, float y, float z, float radius) {
 
     // Iscrtavaju se 4 coska kvadrata ogranicena upisanim krugom
     glBegin(GL_POLYGON);
+        glNormal3f(radius + x, radius + y, 1);
         glVertex3f(radius + x, radius + y, z);
-        for(i=0; i<7; i++, angle += baseAngle)
+        for(i=0; i<7; i++, angle += baseAngle) {
+            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
+        }
     glEnd();
     
     angle -= baseAngle;
     glBegin(GL_POLYGON);
+        glNormal3f(-radius + x, radius + y, 1);
         glVertex3f(-radius + x, radius + y, z);
-        for(i=0; i<7; i++, angle += baseAngle)
+        for(i=0; i<7; i++, angle += baseAngle) {
+            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
+        }
     glEnd();
     
     angle -= baseAngle;
     glBegin(GL_POLYGON);
+        glNormal3f(-radius + x, -radius + y, 1);
         glVertex3f(-radius + x, -radius + y, z);
-        for(i=0; i<7; i++, angle += baseAngle)
+        for(i=0; i<7; i++, angle += baseAngle) {
+            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
+        }
     glEnd();
 
     angle -= baseAngle;
     glBegin(GL_POLYGON);
+        glNormal3f(radius + x, -radius + y, 1);
         glVertex3f(radius + x, -radius + y, z);
-        for(i=0; i<7; i++, angle += baseAngle)
+        for(i=0; i<7; i++, angle += baseAngle) {
+            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
+        }
     glEnd();
 }
 
