@@ -1,7 +1,5 @@
 #include "drawing.h"
-#include <stdlib.h>
-#include <GL/glut.h>
-#include <math.h>
+#include "structlib.h"
 
 /**
  *  Funkcije za iscrtavanje elemenata za igru, osvetljenje

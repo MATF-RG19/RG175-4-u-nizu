@@ -4,6 +4,7 @@
 #include <math.h>
 #include "drawing.h"
 #include "gamelib.h"
+#include "structlib.h"
 
 
 // poluprecnik kruga svake celije
