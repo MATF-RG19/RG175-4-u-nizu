@@ -4,8 +4,8 @@
 #include <math.h>
 #include "drawing.h"
 
-static float windowWidth = 600;
-static float windowHeight = 500;
+static float windowWidth = 900;
+static float windowHeight = 700;
 
 // Poluprecnik kruga svake celije
 static float radius = 0.1;
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     
     glutInitWindowSize(windowWidth,windowHeight);
-    glutInitWindowPosition(200,200);
+    glutInitWindowPosition(100,100);
     glutCreateWindow(argv[0]);
 
     glutDisplayFunc(on_display);
