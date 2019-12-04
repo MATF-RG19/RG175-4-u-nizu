@@ -14,12 +14,16 @@ static float slotStep;
 
 // zeton kojim se bira potez
 token currToken;
+// kolona nad kojom je trenutno currToken, pomera sa tasterima <- i ->
+static int currCol = 3;
 
 static float windowWidth = 900;
 static float windowHeight = 700;
 
-static void on_display(void);
-static void on_reshape(int width, int height);
+static void onDisplay(void);
+static void onReshape(int width, int height);
+static void onKeyboard(unsigned char key, int x, int y);
+static void onArrowKey(int key, int x, int y);
 void initialize();
 
 int main(int argc, char** argv) {
@@ -31,8 +35,10 @@ int main(int argc, char** argv) {
     glutInitWindowPosition(100,100);
     glutCreateWindow(argv[0]);
 
-    glutDisplayFunc(on_display);
-    glutReshapeFunc(on_reshape);
+    glutDisplayFunc(onDisplay);
+    glutReshapeFunc(onReshape);
+    glutKeyboardFunc(onKeyboard);
+    glutSpecialFunc(onArrowKey);
 
     initialize();
 
@@ -46,9 +52,14 @@ void initialize() {
     glEnable(GL_DEPTH_TEST);
 
     slotStep  = 2*radius + radius/4;
+
+    // Podesavaju se pocetne koordinate zetona kojim biramo potez
+    currToken.x = 3 * slotStep;
+    currToken.y = slotStep;
+    currToken.player = 1;
 }
 
-static void on_reshape(int width, int height) {
+static void onReshape(int width, int height) {
     windowWidth = width;
     windowHeight = height;
     glViewport(0, 0, windowWidth, windowHeight);
@@ -58,7 +69,7 @@ static void on_reshape(int width, int height) {
     gluPerspective(60, (float)windowWidth/windowHeight, 1, 5);
 }
 
-static void on_display(void) {
+static void onDisplay(void) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, windowWidth, windowHeight);
@@ -79,10 +90,43 @@ static void on_display(void) {
     drawBoard(0, 0, 0, 0.05, radius);
 
     // Crta se zeton kojim se bira potez
-    currToken.x = 3 * slotStep;
-    currToken.y = slotStep;
-    currToken.player = 1;
     drawToken(&currToken, radius);
 
     glutSwapBuffers();
+}
+
+static void onKeyboard(unsigned char key, int x, int y) {
+    (void) x;
+    (void) y;
+
+    switch (key) {
+        case 27:
+            // Zavrsava se program
+            exit(EXIT_SUCCESS);
+            break;
+    }   
+}
+
+static void onArrowKey(int key, int x, int y) {
+    (void) x;
+    (void) y;
+
+    switch (key) {
+        case GLUT_KEY_LEFT:
+            if(currCol > 0) {
+                currToken.x -= slotStep;
+                currCol--;
+                glutPostRedisplay();
+            }
+            break;
+
+        case GLUT_KEY_RIGHT:
+            if(currCol < 6) {
+                currToken.x += slotStep;
+                currCol++;
+                glutPostRedisplay();
+            }
+            break;
+
+    }
 }
