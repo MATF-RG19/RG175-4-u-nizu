@@ -7,7 +7,7 @@
 static float windowWidth = 900;
 static float windowHeight = 700;
 
-// Poluprecnik kruga svake celije
+// poluprecnik kruga svake celije
 static float radius = 0.1;
 
 static void on_display(void);
@@ -61,23 +61,15 @@ static void on_display(void) {
     glLoadIdentity();
     gluLookAt(0, 1, 1.6, 0, 0, 0, 0, 1, 0);
 
-    // podesavanja za svetlo
-    GLfloat light_position[] = { 0, 0.2, 1, 0 };
-    GLfloat light_ambient[] = { 0, 0, 0, 1 };
-    GLfloat light_diffuse[] = { 1, 1, 1, 1 };
-    GLfloat light_specular[] = { 0.5, 0.5, 0.5, 1 };
-
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    // Podesava osvetljenje
+    setLightingParams();
     
     glTranslatef(-0.6, 0.2, 0);
-    // iscrtava celokupnu tablu za igru, biblioteka "drawing.h"
+    // Iscrtava celokupnu tablu za igru
     drawBoard(0, 0, 0, 0.05, radius);
-    
+
+    // Za sada samo crta jedan zeton nad prvom kolonom
+    drawToken(0, 2*radius + radius/2, -0.01, 0.03, radius, 1);
 
     glutSwapBuffers();
 }
