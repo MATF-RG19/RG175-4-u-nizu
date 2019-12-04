@@ -3,12 +3,20 @@
 #include <GL/glut.h>
 #include <math.h>
 #include "drawing.h"
+#include "gamelib.h"
+
+
+// poluprecnik kruga svake celije
+static const float radius = 0.1;
+
+// horizontalno rastojanje izmedju centara krugova dve susedne kolone
+static float slotStep;
+
+// zeton kojim se bira potez
+token currToken;
 
 static float windowWidth = 900;
 static float windowHeight = 700;
-
-// poluprecnik kruga svake celije
-static float radius = 0.1;
 
 static void on_display(void);
 static void on_reshape(int width, int height);
@@ -36,6 +44,8 @@ int main(int argc, char** argv) {
 void initialize() {
     glClearColor(0.6,0.6,0.6,0);
     glEnable(GL_DEPTH_TEST);
+
+    slotStep  = 2*radius + radius/4;
 }
 
 static void on_reshape(int width, int height) {
@@ -68,8 +78,11 @@ static void on_display(void) {
     // Iscrtava celokupnu tablu za igru
     drawBoard(0, 0, 0, 0.05, radius);
 
-    // Za sada samo crta jedan zeton nad prvom kolonom
-    drawToken(0, 2*radius + radius/2, -0.01, 0.03, radius, 1);
+    // Crta se zeton kojim se bira potez
+    currToken.x = 3 * slotStep;
+    currToken.y = slotStep;
+    currToken.player = 1;
+    drawToken(&currToken, radius);
 
     glutSwapBuffers();
 }

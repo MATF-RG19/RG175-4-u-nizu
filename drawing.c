@@ -3,11 +3,14 @@
 #include <GL/glut.h>
 #include <math.h>
 
-/*
+/**
  *  Funkcije za iscrtavanje elemenata za igru, osvetljenje
 */
 
-/* Podesava osvetljenje */
+
+/**
+ *  Podesava osvetljenje 
+ */
 void setLightingParams() {
     GLfloat light_position[] = { 0, 0.2, 1, 0 };
     GLfloat light_ambient[] = { 0, 0, 0, 1 };
@@ -22,7 +25,7 @@ void setLightingParams() {
     glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 }
 
-/* 
+/** 
  *  Iscrtava celu tablu za igru.
  * 
  *  x,y - koordinate centra kruga gornje leve celije.
@@ -112,7 +115,7 @@ void drawBoard(float x, float y, float z, float w, float radius) {
         glVertex3f(startX, endY, 0);
     glEnd();
 }
-/* 
+/** 
  *  Pomocna funkcija, poziva je drawBoard().
  * 
  *  Iscrtava 7x6 plocu sa kruznim supljinama.
@@ -175,7 +178,7 @@ void drawTable(float x, float y, float z, float radius) {
         endY -= (2*radius + width);
     } 
 }
-/* 
+/**
  *  Pomocna funkcija, poziva je drawTable().
  * 
  *  Krug sa poluprecnikom radius i centrom u (x,y) je upisan u kvadrat
@@ -228,20 +231,19 @@ void drawCorners(float x, float y, float z, float radius) {
         }
     glEnd();
 }
-/* Iscrtava zeton odgovarajuce boje
+/** 
+ *  Iscrtava zeton odgovarajuce boje
  *  
- *  x,y,z  - koordinate centra prednjeg kruga
- *  w      - debljina zetona
+ *  t      - pokazivac na token
  *  radius - poluprecnik kruga
- *  player - odredjuje boju zetona (1 - crvena, 2 - zuta)
 */
-void drawToken(float x, float y, float z, float w, float radius, int player) {
+void drawToken(token* t , float radius) {
 
     // podesavanja za materijal
     // prednji i zadnji krug
     GLfloat ambient_coeffs[] = {0, 0, 0, 1 };
     GLfloat diffuse_coeffs[] = { 0.5, 0.1, 0.1, 1 }; // crvena za player = 1
-    if(player == 2)
+    if(t->player == 2)
         diffuse_coeffs[1] = 0.5; // zuta za player = 2
 
     GLfloat specular_coeffs[] = { 0, 0, 0, 1 };
@@ -254,6 +256,12 @@ void drawToken(float x, float y, float z, float w, float radius, int player) {
 
     // ugao za iteraciju
     float angle = M_PI/12;
+    
+    const float x = t->x;
+    const float y = t->y;
+    const float z = -0.01; // z-koordinata prednjeg kruga
+    const float w =  0.03;  // debljina zetona 
+
     float tmpAngle;
 
     // prednji krug
@@ -274,7 +282,7 @@ void drawToken(float x, float y, float z, float w, float radius, int player) {
 
     // ivice zetona su tamnije
     GLfloat diffuse_coeffs2[] = { 0.3, 0, 0, 1 }; // crvena za player = 1
-    if(player == 2)
+    if(t->player == 2)
        diffuse_coeffs[1] = 0.3; // zuta za player = 2
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
