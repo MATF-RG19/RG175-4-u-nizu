@@ -128,12 +128,24 @@ static void onKeyboard(unsigned char key, int x, int y) {
             freeGameBoard(&board);
             exit(EXIT_SUCCESS);
             break;
+
+        // Resetuje se tabla
+        case 'r':
+        case 'R':
+            freeGameBoard(&board);
+            board = gameBoardInit(0, 0, slotStep);
+            currToken.player = player = 1;
+
+            glutPostRedisplay();
+
+            break;
+
         /**
          *  TODO - implementirati pomeranje kamere, sada je samo zapoceto
         */
         case 'a':
         case 'A':
-            printf("x: %f\n", eyeX);
+            // printf("x: %f\n", eyeX);
             if(eyeX < 0.4) {
                 eyeX += vEye;
                 glutPostRedisplay();
@@ -142,7 +154,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
 
         case 'd':
         case 'D':
-            printf("x: %f\n", eyeX);
+            // printf("x: %f\n", eyeX);
             if(eyeX > -0.4) {
                 eyeX -= vEye;
                 glutPostRedisplay();
@@ -156,6 +168,7 @@ static void onArrowKey(int key, int x, int y) {
     (void) y;
 
     switch (key) {
+        // Zeton nad tablom se pomera za jedno mesto u levo
         case GLUT_KEY_LEFT:
             if(currCol > 0) {
                 currToken.x -= slotStep;
@@ -164,6 +177,7 @@ static void onArrowKey(int key, int x, int y) {
             }
             break;
 
+        // Zeton se pomera u desno
         case GLUT_KEY_RIGHT:
             if(currCol < 6) {
                 currToken.x += slotStep;
@@ -172,8 +186,8 @@ static void onArrowKey(int key, int x, int y) {
             }
             break;
 
+        // Odigrava se potez ako je validan.
         case GLUT_KEY_DOWN:
-            // Odigrava se potez ako je validan.
             if(validMove(&board, currCol)) {
                 makeMove(&board, currCol, player);
                 
