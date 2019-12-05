@@ -18,6 +18,11 @@ token currToken;
 // kolona nad kojom je trenutno currToken, pomera sa tasterima <- i ->
 static int currCol = 3;
 
+// pokazivac na trenutnu tablu igre
+gameBoard board;
+// trenutni id igraca
+static int player = 1;
+
 // koordinate kamere, menjaju se tasterima WASD
 static float eyeX = 0;
 static float eyeY = 1;
@@ -62,10 +67,13 @@ void initialize() {
 
     slotStep  = 2*radius + radius/4;
 
+    // Inicijalizuje se tabla
+    board = gameBoardInit(0, 0, slotStep);
+
     // Podesavaju se pocetne koordinate zetona kojim biramo potez
     currToken.x = 3 * slotStep;
     currToken.y = slotStep;
-    currToken.player = 1;
+    currToken.player = player;
 }
 
 static void onReshape(int width, int height) {
@@ -101,6 +109,12 @@ static void onDisplay(void) {
     // Crta se zeton kojim se bira potez
     drawToken(&currToken, radius);
 
+    int i,j;
+    for(i=0; i<6; i++)
+        for(j=0; j<7; j++)
+            if(board.tokens[i][j].player)
+                drawToken(&board.tokens[i][j], radius);
+
     glutSwapBuffers();
 }
 
@@ -111,6 +125,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
     switch (key) {
         case 27:
             // Zavrsava se program
+            freeGameBoard(&board);
             exit(EXIT_SUCCESS);
             break;
         /**
@@ -153,6 +168,19 @@ static void onArrowKey(int key, int x, int y) {
             if(currCol < 6) {
                 currToken.x += slotStep;
                 currCol++;
+                glutPostRedisplay();
+            }
+            break;
+
+        case GLUT_KEY_DOWN:
+            // Odigrava se potez ako je validan.
+            if(validMove(&board, currCol)) {
+                makeMove(&board, currCol, player);
+                
+                // Id igraca na potezu se alternira.
+                player = player == 1 ? 2 : 1;
+                currToken.player = player;
+
                 glutPostRedisplay();
             }
             break;
