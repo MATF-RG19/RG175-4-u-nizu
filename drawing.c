@@ -281,7 +281,7 @@ void drawToken(token* t , float radius) {
     // ivice zetona su tamnije
     GLfloat diffuse_coeffs2[] = { 0.3, 0, 0, 1 }; // crvena za player = 1
     if(t->player == 2)
-       diffuse_coeffs[1] = 0.3; // zuta za player = 2
+       diffuse_coeffs2[1] = 0.3; // zuta za player = 2
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs2);
