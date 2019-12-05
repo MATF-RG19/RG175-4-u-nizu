@@ -18,6 +18,14 @@ token currToken;
 // kolona nad kojom je trenutno currToken, pomera sa tasterima <- i ->
 static int currCol = 3;
 
+// koordinate kamere, menjaju se tasterima WASD
+static float eyeX = 0;
+static float eyeY = 1;
+static float eyeZ = 1.6;
+
+// korak kretanja kamere
+static float vEye = 0.05;
+
 static float windowWidth = 900;
 static float windowHeight = 700;
 
@@ -81,7 +89,7 @@ static void onDisplay(void) {
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0, 1, 1.6, 0, 0, 0, 0, 1, 0);
+    gluLookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
 
     // Podesava osvetljenje
     setLightingParams();
@@ -104,6 +112,26 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 27:
             // Zavrsava se program
             exit(EXIT_SUCCESS);
+            break;
+        /**
+         *  TODO - implementirati pomeranje kamere, sada je samo zapoceto
+        */
+        case 'a':
+        case 'A':
+            printf("x: %f\n", eyeX);
+            if(eyeX < 0.4) {
+                eyeX += vEye;
+                glutPostRedisplay();
+            }
+            break;
+
+        case 'd':
+        case 'D':
+            printf("x: %f\n", eyeX);
+            if(eyeX > -0.4) {
+                eyeX -= vEye;
+                glutPostRedisplay();
+            }
             break;
     }   
 }
