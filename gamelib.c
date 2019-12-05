@@ -68,7 +68,7 @@ gameBoard gameBoardInit(float x, float y, float slotStep) {
     }
 
     // Alocira se niz topCol
-    board.topCol = malloc(6*sizeof(int));
+    board.topCol = malloc(7*sizeof(int));
     if(board.topCol == NULL) {
         fprintf(stderr, "gameBoardInit() malloc fail\n");
         exit(EXIT_FAILURE);
