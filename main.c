@@ -6,12 +6,18 @@
 #include "gamelib.h"
 #include "structlib.h"
 
+#define TIMER_ID 1
+#define TIMER_INTERVAL 10
+
+static int animationOngoing = 0;
 
 // poluprecnik kruga svake celije
 static const float radius = 0.1;
 
 // horizontalno rastojanje izmedju centara krugova dve susedne kolone
 static float slotStep;
+// vektor kretanja za pad zetona
+static float vY = -0.1;
 
 // zeton kojim se bira potez
 token currToken;
@@ -38,6 +44,7 @@ static void onDisplay(void);
 static void onReshape(int width, int height);
 static void onKeyboard(unsigned char key, int x, int y);
 static void onArrowKey(int key, int x, int y);
+static void onTimer(int value);
 void initialize();
 
 int main(int argc, char** argv) {
@@ -170,7 +177,7 @@ static void onArrowKey(int key, int x, int y) {
     switch (key) {
         // Zeton nad tablom se pomera za jedno mesto u levo
         case GLUT_KEY_LEFT:
-            if(currCol > 0) {
+            if(currCol > 0 && !animationOngoing) {
                 currToken.x -= slotStep;
                 currCol--;
                 glutPostRedisplay();
@@ -179,7 +186,7 @@ static void onArrowKey(int key, int x, int y) {
 
         // Zeton se pomera u desno
         case GLUT_KEY_RIGHT:
-            if(currCol < 6) {
+            if(currCol < 6 && !animationOngoing) {
                 currToken.x += slotStep;
                 currCol++;
                 glutPostRedisplay();
@@ -188,16 +195,41 @@ static void onArrowKey(int key, int x, int y) {
 
         // Odigrava se potez ako je validan.
         case GLUT_KEY_DOWN:
-            if(validMove(&board, currCol)) {
-                makeMove(&board, currCol, player);
+            if(!animationOngoing && validMove(&board, currCol)) {
                 
-                // Id igraca na potezu se alternira.
-                player = player == 1 ? 2 : 1;
-                currToken.player = player;
-
-                glutPostRedisplay();
+                // Pokrece se animacija pada zetona.
+                glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
+                animationOngoing = 1;
             }
             break;
 
+    }
+}
+
+static void onTimer(int value) {
+    if(value != TIMER_ID)
+        return;
+
+    if(currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
+        animationOngoing = 0;
+
+        // Kada padne zeton azurira se tabla.
+        makeMove(&board, currCol, player);
+                
+        // Id igraca na potezu se alternira.
+        player = player == 1 ? 2 : 1;
+        currToken.player = player;
+        currToken.y = slotStep;
+
+        glutPostRedisplay();
+
+        return;
+    }
+
+    currToken.y += vY;
+    glutPostRedisplay();
+
+    if (animationOngoing) {
+        glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
     }
 }
