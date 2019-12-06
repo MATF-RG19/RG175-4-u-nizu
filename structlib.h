@@ -9,11 +9,11 @@
  *  Podaci o zetonu
  * 
  *  float x, y   - koordinate centra prednjeg i zadnjeg kruga u z-ravni
- *  int player - igrac kojem odgovara zeton
+ *  char player - igrac kojem odgovara zeton
 */
 typedef struct token_ {
     float x, y;
-    int player;
+    char player;
 } token;
 
 /**

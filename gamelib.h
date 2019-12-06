@@ -12,6 +12,6 @@
 gameBoard gameBoardInit(float x, float y, float slotStep);
 void freeGameBoard(gameBoard* board);
 int validMove(gameBoard* board, int col);
-void makeMove(gameBoard* board, int col, int player);
+void makeMove(gameBoard* board, int col, char player);
 
 #endif

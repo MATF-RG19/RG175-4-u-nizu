@@ -25,9 +25,9 @@ int validMove(gameBoard* board, int col) {
  * 
  *  gameBoard* board - pokazivac na tablu
  *  int col          - izabrana kolona, mora biti u opsegu [0,6]
- *  int player       - broj igraca, mora biti 1 ili 2
+ *  char player       - broj igraca, mora biti '1' ili '2'
 */
-void makeMove(gameBoard* board, int col, int player) {
+void makeMove(gameBoard* board, int col, char player) {
 
     // Zeton igraca player se dodaje u tabelu i azurira se slobodna i-pozicija u toj koloni 
     board->tokens[board->topCol[col]--][col].player = player;
@@ -83,11 +83,11 @@ gameBoard gameBoardInit(float x, float y, float slotStep) {
             board.tokens[i][j].x = tokenX;
             board.tokens[i][j].y = tokenY;
 
-            /* Zeton sa player = 0 se nece crtati jer u trenutnoj igri ne postoji,
+            /* Zeton sa player = '\0' se nece crtati jer u trenutnoj igri ne postoji,
                vec samo u memoriji. 
-               Na pocetku je cela tabla prazna pa svaki zeton ima vrednost 0 za token.player
+               Na pocetku je cela tabla prazna pa svaki zeton ima vrednost '\0' za token.player
             */
-            board.tokens[i][j].player = 0;
+            board.tokens[i][j].player = '\0';
         }
     }
 

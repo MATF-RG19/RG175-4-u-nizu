@@ -51,7 +51,7 @@ static int currCol = 3;
 // pokazivac na trenutnu tablu igre
 gameBoard board;
 // trenutni id igraca
-static int player = 1;
+static char player = '1';
 
 // koordinate kamere, menjaju se tasterima WASD
 static float eyeX = 0;
@@ -167,7 +167,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'R':
             freeGameBoard(&board);
             board = gameBoardInit(0, 0, slotStep);
-            currToken.player = player = 1;
+            currToken.player = player = '1';
 
             glutPostRedisplay();
 
@@ -197,7 +197,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         // 2. igrac - zeton nad tablom se pomera za jedno mesto u levo
         case 'j':
         case 'J':
-            if(mode != 1 || player != 2)
+            if(mode != 1 || player != '2')
                 break;
             if(currCol > 0 && !animationOngoing) {
                 currToken.x -= slotStep;
@@ -209,7 +209,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         // 2. igrac - zeton se pomera u desno
         case 'l':
         case 'L':
-            if(mode != 1 || player != 2)
+            if(mode != 1 || player != '2')
                 break;
             if(currCol < 6 && !animationOngoing) {
                 currToken.x += slotStep;
@@ -221,7 +221,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         // 2.igrac - odigrava se potez ako je validan.
         case 'k':
         case 'K':
-            if(mode != 1 || player != 2)
+            if(mode != 1 || player != '2')
                 break;
             if(!animationOngoing && validMove(&board, currCol)) {
                 
@@ -240,7 +240,7 @@ static void onArrowKey(int key, int x, int y) {
     switch (key) {
         // Zeton nad tablom se pomera za jedno mesto u levo
         case GLUT_KEY_LEFT:
-            if(player != 1)
+            if(player != '1')
                 break;
             if(currCol > 0 && !animationOngoing) {
                 currToken.x -= slotStep;
@@ -251,7 +251,7 @@ static void onArrowKey(int key, int x, int y) {
 
         // Zeton se pomera u desno
         case GLUT_KEY_RIGHT:
-            if(player != 1)
+            if(player != '1')
                 break;
             if(currCol < 6 && !animationOngoing) {
                 currToken.x += slotStep;
@@ -262,7 +262,7 @@ static void onArrowKey(int key, int x, int y) {
 
         // Odigrava se potez ako je validan.
         case GLUT_KEY_DOWN:
-            if(player != 1)
+            if(player != '1')
                 break;
             if(!animationOngoing && validMove(&board, currCol)) {
                 
@@ -286,14 +286,14 @@ static void onTimer(int value) {
         makeMove(&board, currCol, player);
                 
         // Id igraca na potezu se alternira.
-        player = player == 1 ? 2 : 1;
+        player = player == '1' ? '2' : '1';
         currToken.player = player;
         currToken.y = slotStep;
 
         glutPostRedisplay();
 
         // Ako se igra protiv racunara, sada je na njega red.
-        if(mode == 2 && player == 2) {
+        if(mode == 2 && player == '2') {
             // Trenutno se racunar igra nasumicno
             int botCol;
             do {

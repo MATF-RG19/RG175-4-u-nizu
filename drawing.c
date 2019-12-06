@@ -240,9 +240,9 @@ void drawToken(token* t , float radius) {
     // podesavanja za materijal
     // prednji i zadnji krug
     GLfloat ambient_coeffs[] = {0, 0, 0, 1 };
-    GLfloat diffuse_coeffs[] = { 0.5, 0.1, 0.1, 1 }; // crvena za player = 1
-    if(t->player == 2)
-        diffuse_coeffs[1] = 0.5; // zuta za player = 2
+    GLfloat diffuse_coeffs[] = { 0.5, 0.1, 0.1, 1 }; // crvena za player = '1'
+    if(t->player == '2')
+        diffuse_coeffs[1] = 0.5; // zuta za player = '2'
 
     GLfloat specular_coeffs[] = { 0, 0, 0, 1 };
     GLfloat shininess = 0;
@@ -279,9 +279,9 @@ void drawToken(token* t , float radius) {
     glEnd();
 
     // ivice zetona su tamnije
-    GLfloat diffuse_coeffs2[] = { 0.3, 0, 0, 1 }; // crvena za player = 1
-    if(t->player == 2)
-       diffuse_coeffs2[1] = 0.3; // zuta za player = 2
+    GLfloat diffuse_coeffs2[] = { 0.3, 0, 0, 1 }; // crvena za player = '1'
+    if(t->player == '2')
+       diffuse_coeffs2[1] = 0.3; // zuta za player = '2'
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs2);
