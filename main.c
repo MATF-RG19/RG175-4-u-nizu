@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <GL/glut.h>
 #include <math.h>
+#include <time.h>
 #include "drawing.h"
 #include "gamelib.h"
 #include "structlib.h"
@@ -19,6 +20,14 @@
  *         R        - resetuje se tabla
  *        ESC       - izlaz iz programa
  *        WASD      - TODO: dovrsiti pomeranje kamere
+ * 
+ *  Napomena: 
+ *      Trenutno se mod igre eksplicitno podesava u funkciji initialize() (mode=1 ili mode=2).
+ *  Moguce je izabrati mod protiv racunara ali on trenutno bira poteze nasumicno.
+ *  Sto je vise punih kolona, teze ce nalaziti slobodnu kolonu pa zato taj izbor ume da
+ *  traje duze i deluje da program blokira, ali svakako je to samo placeholder.
+ * 
+ *  TODO: implementirati minimax algoritam
 */
 
 // 2 igraca (1) ili igrac vs. bot (2)
@@ -92,7 +101,7 @@ void initialize() {
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
 
-    mode = 1;
+    mode = 2;
 
     // Podesavaju se pocetne koordinate zetona kojim biramo potez
     currToken.x = 3 * slotStep;
@@ -261,8 +270,8 @@ static void onArrowKey(int key, int x, int y) {
                 glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
                 animationOngoing = 1;
             }
-            break;
 
+            break;
     }
 }
 
@@ -282,6 +291,25 @@ static void onTimer(int value) {
         currToken.y = slotStep;
 
         glutPostRedisplay();
+
+        // Ako se igra protiv racunara, sada je na njega red.
+        if(mode == 2 && player == 2) {
+            // Trenutno se racunar igra nasumicno
+            int botCol;
+            do {
+                srand(time(NULL));
+                botCol = rand() % 7;
+            } while(!validMove(&board, botCol));
+
+            // Racunar zeton se iscrtava nad izabranom kolonom.
+            currToken.x += (botCol - currCol)*slotStep;
+            currCol = botCol;
+            glutPostRedisplay();
+
+            // Pokrece se animacija za pad zetona.
+            glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
+            animationOngoing = 1;
+        }
 
         return;
     }
