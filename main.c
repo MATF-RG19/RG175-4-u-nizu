@@ -19,7 +19,7 @@
  *        JKL       - kontrole za 2. igraca      
  *         R        - resetuje se tabla
  *        ESC       - izlaz iz programa
- *        WASD      - TODO: dovrsiti pomeranje kamere
+ *        WASD      - pomeranje kamere
  * 
  *  Napomena: 
  *      Trenutno se mod igre eksplicitno podesava u funkciji initialize() (mode=1 ili mode=2).
@@ -53,13 +53,17 @@ gameBoard board;
 // trenutni id igraca
 static char player = '1';
 
-// koordinate kamere, menjaju se tasterima WASD
-static float eyeX = 0;
-static float eyeY = 1;
-static float eyeZ = 1.6;
+// sferne koordinate kamere
+static float r = 2;
+static float theta = 0;
+static float phi = M_PI/2;
+// korak pomeranja kamere
+static const float angleStep = M_PI/24;
 
-// korak kretanja kamere
-static float vEye = 0.05;
+// koordinate kamere u xyz-prostoru
+static float eyeX;
+static float eyeY;
+static float eyeZ;
 
 static float windowWidth = 900;
 static float windowHeight = 700;
@@ -103,6 +107,8 @@ void initialize() {
 
     mode = 2;
 
+    getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+
     // Podesavaju se pocetne koordinate zetona kojim biramo potez
     currToken.x = 3 * slotStep;
     currToken.y = slotStep;
@@ -132,10 +138,11 @@ static void onDisplay(void) {
     glLoadIdentity();
     gluLookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
 
+    glTranslatef(-0.6, 0.2, 0);
+
     // Podesava osvetljenje
     setLightingParams();
-    
-    glTranslatef(-0.6, 0.2, 0);
+
     // Iscrtava celokupnu tablu za igru
     drawBoard(0, 0, 0, 0.05, radius);
 
@@ -157,12 +164,12 @@ static void onKeyboard(unsigned char key, int x, int y) {
 
     switch (key) {
         case 27:
-            // Zavrsava se program
+            // Zavrsava se program.
             freeGameBoard(&board);
             exit(EXIT_SUCCESS);
             break;
 
-        // Resetuje se tabla
+        // Resetuje se tabla.
         case 'r':
         case 'R':
             freeGameBoard(&board);
@@ -173,27 +180,45 @@ static void onKeyboard(unsigned char key, int x, int y) {
 
             break;
 
-        /**
-         *  TODO - implementirati pomeranje kamere, sada je samo zapoceto
-        */
+        // Pomera se kamera.
         case 'a':
         case 'A':
-            // printf("x: %f\n", eyeX);
-            if(eyeX < 0.4) {
-                eyeX += vEye;
+            if(theta > -M_PI/3) {
+                theta -= angleStep;
+                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
                 glutPostRedisplay();
             }
             break;
 
         case 'd':
         case 'D':
-            // printf("x: %f\n", eyeX);
-            if(eyeX > -0.4) {
-                eyeX -= vEye;
+            if(theta < M_PI/3) {
+                theta += angleStep;
+                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
                 glutPostRedisplay();
             }
             break;
 
+        case 'w':
+        case 'W':
+            if(phi > M_PI/6) {
+                phi -= angleStep;
+                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+                glutPostRedisplay();
+            }
+            break;
+
+        case 's':
+        case 'S':
+            if(phi < M_PI/2) {
+                if (phi > M_PI/2) 
+                    phi = M_PI/2;
+                phi += angleStep;
+                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+                glutPostRedisplay();
+            }
+            break;
+        
         // 2. igrac - zeton nad tablom se pomera za jedno mesto u levo
         case 'j':
         case 'J':
@@ -294,7 +319,7 @@ static void onTimer(int value) {
 
         // Ako se igra protiv racunara, sada je na njega red.
         if(mode == 2 && player == '2') {
-            // Trenutno se racunar igra nasumicno
+            // Trenutno racunar igra nasumicno.
             int botCol;
             do {
                 srand(time(NULL));

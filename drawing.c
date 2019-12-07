@@ -302,3 +302,17 @@ void drawToken(token* t , float radius) {
         }
     glEnd();
 }
+
+/**
+ *  Pretvara (r,theta,phi) koordinate kamere i smesta u promenljive x,y,z
+ * 
+ *  float r      - rastojanje od table
+ *  float theta  - ugao izmedju x i z osa
+ *  float z      - ugao izmedju z-ose i vektora odredjenim uz pomoc theta
+ *  float* x,y,z - lokacije na kojima se smestaju nove koordinate
+*/
+void getCameraCoords(float r, float theta, float phi, float* x, float* y, float* z) {
+    *x = r * sin(theta) * sin(phi);
+    *y = r * cos(phi); 
+    *z = r * cos(theta) * sin(phi);
+}

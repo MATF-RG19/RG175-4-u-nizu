@@ -18,4 +18,6 @@ void drawToken(token* t, float radius);
 
 void setLightingParams();
 
+void getCameraCoords(float r, float theta, float phi, float* x, float* y, float* z);
+
 #endif
