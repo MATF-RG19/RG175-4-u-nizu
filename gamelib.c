@@ -83,11 +83,11 @@ gameBoard gameBoardInit(float x, float y, float slotStep) {
             board.tokens[i][j].x = tokenX;
             board.tokens[i][j].y = tokenY;
 
-            /* Zeton sa player = '\0' se nece crtati jer u trenutnoj igri ne postoji,
+            /* Zeton sa player = '0' se nece crtati jer u trenutnoj igri ne postoji,
                vec samo u memoriji. 
-               Na pocetku je cela tabla prazna pa svaki zeton ima vrednost '\0' za token.player
+               Na pocetku je cela tabla prazna pa svaki zeton ima vrednost '0' za token.player
             */
-            board.tokens[i][j].player = '\0';
+            board.tokens[i][j].player = '0';
         }
     }
 
@@ -108,4 +108,112 @@ void freeGameBoard(gameBoard* board) {
     free(board->tokens);
     
     free(board->topCol);
+}
+
+/**
+ *  Mapira oznake igraca za svaki zeton u matricu karaktera
+*/
+state* boardToState(gameBoard* board) {
+    state* state = malloc(sizeof(state));
+    if(state == NULL) {
+        fprintf(stderr, "boardToState() malloc fail\n");
+        exit(EXIT_FAILURE);
+    }
+
+    state->st = malloc(6 * sizeof(char*));
+    if(state->st == NULL) {
+        fprintf(stderr, "boardToState() malloc fail\n");
+        exit(EXIT_FAILURE);
+    }
+    int i, j;
+    for(i=0; i<6; i++) {
+        state->st[i] = malloc(7);
+        if(state->st[i] == NULL) {
+            fprintf(stderr, "boardToState() malloc fail\n");
+            exit(EXIT_FAILURE);
+        }
+
+        for(j=0; j<7; j++)
+            state->st[i][j] = board->tokens[i][j].player;
+    }
+    
+    state->top = malloc(7*sizeof(short));
+    if(state->top == NULL) {
+        fprintf(stderr, "boardToState() malloc fail\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for(j=0; j<7; j++)
+        state->top[j] = board->topCol[j];
+
+    return state;
+}
+
+/**
+ *  Oslobadja memoriju koju zauzima state* state
+*/
+void freeState(state* state){
+    int i;
+    for(i=0; i<6; i++)
+        free(state->st[i]);
+    free(state->st);
+    
+    free(state->top);
+
+    free(state);
+}
+
+/**
+ *  Funkcija evaluacije stanja igre.
+ * 
+ *  Trenutno samo vraca 1 ako je pobednik igrac, 2 ako je pobedio 2.igrac ili racunar,
+ *  i 0 ako nema pobednika.
+*/
+int evaluate(state* state) {
+    // int winner = 0;
+
+    /*
+        Proverava se da li ima 4 u nizu po redovima.
+        Ako u i-tom redu u koloni j=3 nema zetona, nema sigurno pobednika u tom redu,
+        pa ni u gornjim redovima.
+    */
+    int i,j;
+    for(i=5; i>=0 && state->st[i][3] != '0'; i--)
+        for(j=3; j<7; j++)
+            if(state->st[i][j] == state->st[i][j-1] && state->st[i][j-1] == state->st[i][j-2] &&
+                state->st[i][j-2] == state->st[i][j-3]) {
+                
+                return state->st[i][j] - '0';
+            }
+    /*
+        Proverava se po kolonama.
+        Ako na polju (i,j) nema zetona, tu nema 4 u nizu, sece se i pretraga za vise redove
+    */
+    for(j=0; j<7; j++)
+        for(i=2; i>=0 && state->st[i][j] != '0'; i--)
+            if(state->st[i][j] == state->st[i+1][j] && state->st[i+1][j] == state->st[i+2][j] &&
+                state->st[i+2][j] == state->st[i+3][j]) {
+                
+                return state->st[i][j] - '0';
+            }
+
+    // Slicno za dijagonale oblika '/'
+    for(j=3; j<7; j++)
+        for(i=2; i>=0 && state->st[i][j] != '0'; i--)
+            if(state->st[i][j] == state->st[i+1][j-1] && state->st[i+1][j-1] == state->st[i+2][j-2] &&
+                state->st[i+2][j-2] == state->st[i+3][j-3]) {
+                
+                return state->st[i][j] - '0';
+            }
+
+    // Slicno za dijagonale oblika '\'
+    for(j=3; j>=0; j--)
+        for(i=2; i>=0 && state->st[i][j] != '0'; i--)
+            if(state->st[i][j] == state->st[i+1][j+1] && state->st[i+1][j+1] == state->st[i+2][j+2] &&
+                state->st[i+2][j+2] == state->st[i+3][j+3]) {
+                
+                return state->st[i][j] - '0';
+            }
+
+    return 0;
 }

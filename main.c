@@ -3,6 +3,7 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <time.h>
+#include <string.h>
 #include "drawing.h"
 #include "gamelib.h"
 #include "structlib.h"
@@ -105,7 +106,7 @@ void initialize() {
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
 
-    mode = 2;
+    mode = 1;
 
     getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
 
@@ -152,7 +153,7 @@ static void onDisplay(void) {
     int i,j;
     for(i=0; i<6; i++)
         for(j=0; j<7; j++)
-            if(board.tokens[i][j].player)
+            if(board.tokens[i][j].player != '0')
                 drawToken(&board.tokens[i][j], radius);
 
     glutSwapBuffers();
@@ -316,6 +317,12 @@ static void onTimer(int value) {
         currToken.y = slotStep;
 
         glutPostRedisplay();
+
+        state* state = boardToState(&board);
+        int winner = evaluate(state);
+        if(winner)
+            printf("Pobednik: %d\n", winner);
+        freeState(state);
 
         // Ako se igra protiv racunara, sada je na njega red.
         if(mode == 2 && player == '2') {
