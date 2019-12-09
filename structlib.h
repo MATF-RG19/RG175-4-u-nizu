@@ -39,4 +39,14 @@ typedef struct state_ {
     short* top;
 } state;
 
+typedef struct minMax_ {
+    int value;
+    int col;
+} minMax;
+
+typedef struct stateArr_ {
+    state* a;
+    int size;
+} stateArr;
+
 #endif

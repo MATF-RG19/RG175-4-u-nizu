@@ -2,8 +2,10 @@
 #define _GAMELIB_H
 
 #include "structlib.h"
-#include <stdio.h>
+#include <limits.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 /**
  *  Biblioteka za logiku igre
@@ -19,5 +21,9 @@ state* boardToState(gameBoard* board);
 void freeState(state* state);
 
 int evaluate(state* state);
+minMax minimax(state* state, int depth, int isMax, int alpha, int beta);
+
+stateArr getNextStates(state* state, char player);
+void freeStateArr(stateArr* stArr);
 
 #endif

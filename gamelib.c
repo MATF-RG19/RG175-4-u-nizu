@@ -67,8 +67,8 @@ gameBoard gameBoardInit(float x, float y, float slotStep) {
         }
     }
 
-    // Alocira se niz topCol
-    board.topCol = malloc(7*sizeof(int));
+    // Alocira se prostor za niz topCol
+    board.topCol = malloc(7*sizeof(short));
     if(board.topCol == NULL) {
         fprintf(stderr, "gameBoardInit() malloc fail\n");
         exit(EXIT_FAILURE);
@@ -216,4 +216,107 @@ int evaluate(state* state) {
             }
 
     return 0;
+}
+
+minMax minimax(state* state, int depth, int isMax, int alpha, int beta) {
+    /** TODO:
+    minMax node;
+    if(!depth) {
+        node.value = 0;
+        node.col = 0;
+
+        return node;
+    }
+
+    if(isMax) {
+        node.value = INT_MIN;
+
+        
+    } else {
+        node.value = INT_MAX;
+    }
+
+    */
+}
+
+/**
+ *  Generise nova stanja za f-ju minimax
+ * 
+ *  Vraca strukturu stateArr koja sadrzi niz stanja i velicinu tog niza.
+ *  Matrice karaktera unutar svakog stanja (unutar strukture state) se moraju
+ *  naknadno dealocirati, kao i nizovi top, npr. f-jom freeStateArr.
+*/
+stateArr getNextStates(state* startState, char player) {
+    stateArr stArr;
+
+    // Nalazi se broj mogucih novih stanja i alocira se prostor za niz.
+    stArr.size = 0;
+    int i;
+    for(i=0; i<7; i++)
+        if(startState->top[i] != -1)
+            stArr.size++;
+    
+    stArr.a = malloc(stArr.size * sizeof(state));
+    if(stArr.a == NULL) {
+        fprintf(stderr, "getNextStates() malloc fail\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    // Pravi se stArr.size duplikata od startState
+    for(i=0; i<stArr.size; i++) {
+        state next;
+        // Kopira se matrica karaktera
+        next.st = malloc(6*sizeof(char*));
+        if(next.st == NULL) {
+            fprintf(stderr, "getNextStates() malloc fail\n");
+            exit(EXIT_FAILURE);
+        }
+    
+        int j;
+        for(j=0; j<6; j++) {
+            next.st[j] = malloc(7);
+            if(next.st[j] == NULL) {
+                fprintf(stderr, "getNextStates() malloc fail\n");
+                exit(EXIT_FAILURE);
+            }
+
+            memcpy(next.st[j], startState->st[j], 7);
+        }
+
+        // Kopira se niz top
+        next.top = malloc(7*sizeof(short));
+        if(next.top == NULL) {
+            fprintf(stderr, "getNextStates() malloc fail\n");
+            exit(EXIT_FAILURE);
+        }
+        for(j=0; j<7; j++)
+            next.top[j] = startState->top[j];
+
+        stArr.a[i] = next;
+    }
+
+    // Dodaju se novi odigrani potezi igraca player i azurira niz top    
+    int j;
+    for(i=0, j=0; j<7; j++) {
+        int k = startState->top[j];
+        if (k != -1) {
+            stArr.a[i].st[k][j] = player;
+            stArr.a[i++].top[j]++;
+        }
+    }
+
+    return stArr;
+}
+
+/**
+ *  Dealocira sve matrica karaktera stanja na ciji niz pokazuje stArr.
+*/
+void freeStateArr(stateArr* stArr) {
+    int i,j;
+    for(i=0; i<stArr->size; i++) {
+        for(j=0; j<6; j++)
+            free(stArr->a[i].st[j]);
+        free(stArr->a[i].st);
+        free(stArr->a[i].top);
+    }
 }
