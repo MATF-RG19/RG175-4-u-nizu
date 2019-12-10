@@ -41,6 +41,12 @@ typedef struct state_ {
     short lastMove;
 } state;
 
+/**
+ *  Povratna vrednost funkcije minimax
+ * 
+ *  int value - ocena stanja igre
+ *  int col   - potez koji se bira
+*/
 typedef struct minMax_ {
     int value;
     int col;

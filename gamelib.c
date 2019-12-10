@@ -166,8 +166,8 @@ void freeState(state* state){
 /**
  *  Funkcija evaluacije stanja igre.
  * 
- *  Trenutno samo vraca 1 ako je pobednik igrac, 2 ako je pobedio 2.igrac ili racunar,
- *  i 0 ako nema pobednika.
+ *  Vraca 1000 ili -1000 ako je pobednik 1. igrac ili 2.igrac/racunar,
+ *  ili po dodatnim kriterijumima racuna poene.
 */
 int evaluate(state* state) {
     /*
@@ -181,7 +181,7 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i][j-1] && state->st[i][j-1] == state->st[i][j-2] &&
                 state->st[i][j-2] == state->st[i][j-3]) {
                 
-                return state->st[i][j] == '1' ? 1 : -1;
+                return state->st[i][j] == '1' ? 1000 : -1000;
             }
     /*
         Proverava se po kolonama.
@@ -192,7 +192,7 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i+1][j] && state->st[i+1][j] == state->st[i+2][j] &&
                 state->st[i+2][j] == state->st[i+3][j]) {
                 
-                return state->st[i][j] == '1' ? 1 : -1;
+                return state->st[i][j] == '1' ? 1000 : -1000;
             }
 
     // Slicno za dijagonale oblika '/'
@@ -201,7 +201,7 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i+1][j-1] && state->st[i+1][j-1] == state->st[i+2][j-2] &&
                 state->st[i+2][j-2] == state->st[i+3][j-3]) {
                 
-                return state->st[i][j] == '1' ? 1 : -1;
+                return state->st[i][j] == '1' ? 1000 : -1000;
             }
 
     // Slicno za dijagonale oblika '\'
@@ -210,13 +210,175 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i+1][j+1] && state->st[i+1][j+1] == state->st[i+2][j+2] &&
                 state->st[i+2][j+2] == state->st[i+3][j+3]) {
                 
-                return state->st[i][j] == '1' ? 1 : -1;
+                return state->st[i][j] == '1' ? 1000 : -1000;
             }
 
-    return 0;
+    /*
+        Proverava se da li postoje 3 u nizu i bar jedna pozicija sa neke strane gde se moze
+        odigrati za pobedu. 
+        
+        Npr za horizontalu, 3 u nizu za j=[1,2,3] u redu i:
+        Ako je samo jedan od top[0] i top[4] jednak 0, to nosi 5 odnosno -5 poena.
+        Ako dodatno vazi top[0]=top[4]=i, to je "mat" i nosi 50/-50 poena.
+
+        Medjutim potrebno je prvo proveriti sve horizontale, i dijagonale za slucajeve 8/-8
+        pa tek onda za slucajeve 5/-5. Dodatno postoje posebni slucajevi na dijagonalama i
+        svim kolonama gde nije moguce osvojiti 50/-50.
+
+        Posto se ovakvi slucajevi mogu ponavljati za oba igraca u jednom istom stanju,
+        poeni se sabiraju.
+    */
+
+    int score = 0;
+
+    // Prvo se gleda horizontalno za 50/-50
+    for(i=5; i>=0 && state->st[i][3] != '0'; i--)
+        for(j=3; j<6; j++)
+            if(state->st[i][j] == state->st[i][j-1] && state->st[i][j-1] == state->st[i][j-2] &&
+                state->top[j-3]==i && state->top[j+1]==i) {
+
+                score += state->st[i][j] == '1' ? 50 : -50;
+            }
+
+    // Slicno za dijagonale oblika '/'
+    for(j=3; j<6; j++)
+        for(i=2; i>0; i--)
+            if(state->st[i][j]!='0' && state->st[i][j] == state->st[i+1][j-1] && 
+                state->st[i+1][j-1] == state->st[i+2][j-2] && state->top[j-3]==i+3 && 
+                    state->top[j+1]==i-1) {
+                
+                score += state->st[i][j] == '1' ? 50 : -50;
+            }
+
+    // Slicno za dijagonale oblika '\'
+    for(j=3; j<6; j++)
+        for(i=4; i>2; i--)
+            if(state->st[i][j]!='0' && state->st[i][j] == state->st[i-1][j-1] && 
+                state->st[i-1][j-1] == state->st[i-2][j-2] && state->top[j+1]==i+1 && 
+                    state->top[j-3]==i-3) {
+                
+                score += state->st[i][j] == '1' ? 50 : -50;
+            }
+
+    // Traze se slucajevi za 5/-5 poena.
+    
+    // Opsti slucajevi za horizontale
+    for(i=5; i>=0 && state->st[i][3] != '0'; i--)
+        for(j=3; j<6; j++)
+            if(state->st[i][j] == state->st[i][j-1] && state->st[i][j-1] == state->st[i][j-2] &&
+                (state->top[j-3]==i || state->top[j+1]==i)) {
+
+                score += state->st[i][j] == '1' ? 5 : -5;
+            }
+    //  Specijalni slucajevi za horizontale
+    for(i=5; i>=0; i--) {
+        if(state->st[i][0]!='0' && state->st[i][0] == state->st[i][1] && 
+            state->st[i][1] == state->st[i][2] && state->top[3]==i) {
+
+            score += state->st[i][0] == '1' ? 5 : -5;
+        }
+
+        if(state->st[i][6]!='0' && state->st[i][6] == state->st[i][5] && 
+            state->st[i][5] == state->st[i][4] && state->top[3]==i) {
+
+            score += state->st[i][6] == '1' ? 5 : -5;
+        }
+    }
+
+    // Kolone ne mogu dati 50/-50 ni u kom slucaju
+    for(j=0; j<7; j++)
+        for(i=3; i>0 && state->st[i][j] != '0'; i--)
+            if(state->st[i][j] == state->st[i+1][j] && state->st[i+1][j] == state->st[i+2][j] &&
+                state->top[j]==i-1) {
+                
+                score += state->st[i][j] == '1' ? 5 : -5;
+            } 
+    
+    // Dijagonale oblika '/'
+    for(j=3; j<6; j++)
+        for(i=2; i>0; i--)
+            if(state->st[i][j]!='0' && state->st[i][j] == state->st[i+1][j-1] && 
+                state->st[i+1][j-1] == state->st[i+2][j-2] && (state->top[j-3]==i+3 || 
+                    state->top[j+1]==i-1)) {
+                
+                score += state->st[i][j] == '1' ? 5 : -5;
+            }
+    // Dijagonale oblika '\'
+    for(j=3; j<6; j++)
+        for(i=4; i>2; i--)
+            if(state->st[i][j]!='0' && state->st[i][j] == state->st[i-1][j-1] && 
+                state->st[i-1][j-1] == state->st[i-2][j-2] && (state->top[j+1]==i+1 || 
+                    state->top[j-3]==i-3)) {
+                
+                score += state->st[i][j] == '1' ? 5 : -5;
+            }
+
+    // Specijalni slucajevi za sve dijagonale uz levi i desni rub
+    for(i=3; i>0; i--) {
+        // Oblik '/' levi rub
+        if(state->st[i][2]!='0' && state->st[i][2] == state->st[i+1][1] && 
+            state->st[i+1][1] == state->st[i+2][0] && state->top[3]==i-1) {
+
+            score += state->st[i][2] == '1' ? 5 : -5;
+        }
+
+        // Oblik '\' levi rub
+        if(state->st[i+1][2]!='0' && state->st[i+1][2] == state->st[i][1] && 
+            state->st[i][1] == state->st[i-1][0] && state->top[3]==i+2) {
+
+            score += state->st[i+1][2] == '1' ? 5 : -5;
+        }
+
+        // Oblik '/' desni rub
+        if(state->st[i+1][4]!='0' && state->st[i+1][4] == state->st[i][5] && 
+            state->st[i][5] == state->st[i-1][6] && state->top[3]==i+2) {
+
+            score += state->st[i+1][4] == '1' ? 5 : -5;
+        }
+
+        // Oblik '\' desni rub
+        if(state->st[i][4]!='0' && state->st[i][4] == state->st[i+1][5] && 
+            state->st[i+1][5] == state->st[i+2][6] && state->top[3]==i-1) {
+
+            score += state->st[i][4] == '1' ? 5 : -5;
+        }
+    }
+
+    // Specijalni slucajevi za sve dijagonale uz gornji i donji rub
+    for(j=2; j<6; j++) {
+        // Oblik '/' donji rub
+        if(state->st[3][j]!='0' && state->st[3][j] == state->st[4][j-1] && 
+            state->st[4][j-1] == state->st[5][j-2] && state->top[j+1]==2) {
+
+            score += state->st[3][j] == '1' ? 5 : -5;
+        }
+
+        // Oblik '\' donji rub
+        if(state->st[5][j+1]!='0' && state->st[5][j+1] == state->st[4][j] && 
+            state->st[4][j] == state->st[3][j-1] && state->top[j-2]==2) {
+
+            score += state->st[5][j+1] == '1' ? 5 : -5;
+        }
+
+        // Oblik '/' gornji rub
+        if(state->st[0][j+1]!='0' && state->st[0][j+1] == state->st[1][j] && 
+            state->st[1][j] == state->st[2][j-1] && state->top[j-2]==3) {
+
+            score += state->st[0][j+1] == '1' ? 5 : -5;
+        }
+
+        // Oblik '\' gornji rub
+        if(state->st[2][j]!='0' && state->st[2][j] == state->st[1][j-1] && 
+            state->st[1][j-1] == state->st[0][j-2] && state->top[j+1]==3) {
+
+            score += state->st[2][j] == '1' ? 5 : -5;
+        }
+    }
+    
+    return score;
 }
 
-/**
+/** TOFIX: U nekim slucajevima ne primecuje da protivnik u sledecem potezu pobedjuje
  *  Implementira minimax algoritam sa alfa-beta odsecanjem.
  * 
  *  Vraca strukturu minMax koja sadrzi ocenu stanja i potez koji se bira.
@@ -248,6 +410,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
             if(minVal.value > node.value) {
                 node.value = minVal.value;
                 node.col = stArr.a[i].lastMove;
+                printf("1. %d %d\n", node.value, node.col);
             }
 
             alpha = node.value > alpha? node.value : alpha;
@@ -264,6 +427,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
             if(maxVal.value < node.value) {
                 node.value = maxVal.value;
                 node.col = stArr.a[i].lastMove;
+                printf("2. %d %d\n", node.value, node.col);
             }
 
             beta = node.value < beta ? node.value : beta;

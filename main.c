@@ -106,7 +106,7 @@ void initialize() {
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
 
-    mode = 2;
+    mode = 1;
 
     getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
 
@@ -319,16 +319,17 @@ static void onTimer(int value) {
         glutPostRedisplay();
 
         state* state = boardToState(&board);
+        state->lastMove = currCol;
         int winner = evaluate(state);
-        if(winner)
+        //if(winner == 10 || winner == -10)
             printf("Pobednik: %d\n", winner);
         
 
         // Ako se igra protiv racunara, sada je na njega red.
         if(mode == 2 && player == '2') {
             minMax bot = minimax(state,7,'2',INT_MIN, INT_MAX);
+            printf("%d - %d\n", bot.value, bot.col);
             
-            freeState(state);
             // Trenutno racunar igra nasumicno.
             /*
             do {
@@ -346,6 +347,8 @@ static void onTimer(int value) {
             glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
             animationOngoing = 1;
         }
+
+        freeState(state);
 
         return;
     }
