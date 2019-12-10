@@ -394,7 +394,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
         unfinished += startState->top[j];
 
     // Izlaz iz rekurzije za 0-tu dubinu, ako postoji pobednik ili ako je puna tabla
-    if(!depth || node.value || !unfinished)
+    if(!depth || node.value == 1000 || node.value == -1000 || !unfinished)
         return node;
     
     // Generisu se sledeca stanja sa svim mogucim potezima igraca player
@@ -410,7 +410,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
             if(minVal.value > node.value) {
                 node.value = minVal.value;
                 node.col = stArr.a[i].lastMove;
-                printf("1. %d %d\n", node.value, node.col);
+                //printf("1. %d %d\n", node.value, node.col);
             }
 
             alpha = node.value > alpha? node.value : alpha;
@@ -427,7 +427,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
             if(maxVal.value < node.value) {
                 node.value = maxVal.value;
                 node.col = stArr.a[i].lastMove;
-                printf("2. %d %d\n", node.value, node.col);
+                //printf("2. %d %d\n", node.value, node.col);
             }
 
             beta = node.value < beta ? node.value : beta;

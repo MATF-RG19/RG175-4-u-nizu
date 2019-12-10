@@ -106,7 +106,7 @@ void initialize() {
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
 
-    mode = 1;
+    mode = 2;
 
     getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
 
@@ -321,14 +321,14 @@ static void onTimer(int value) {
         state* state = boardToState(&board);
         state->lastMove = currCol;
         int winner = evaluate(state);
-        //if(winner == 10 || winner == -10)
+        if(winner == 1000 || winner == -1000)
             printf("Pobednik: %d\n", winner);
         
 
         // Ako se igra protiv racunara, sada je na njega red.
         if(mode == 2 && player == '2') {
             minMax bot = minimax(state,7,'2',INT_MIN, INT_MAX);
-            printf("%d - %d\n", bot.value, bot.col);
+            //printf("%d - %d\n", bot.value, bot.col);
             
             // Trenutno racunar igra nasumicno.
             /*
