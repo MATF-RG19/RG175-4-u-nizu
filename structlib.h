@@ -31,12 +31,14 @@ typedef struct gameBoard_ {
 /**
  *  Stanje igre
  * 
- *  char** st - matrica zetona, '1' i '2' za 1./2. igraca, '0' kada nema zetona
- *  short* top - top[j] cuva prvu slobodnu poziciju u j-toj koloni ili -1 ako je nema
+ *  char** st      - matrica zetona, '1' i '2' za 1./2. igraca, '0' kada nema zetona
+ *  short* top     - top[j] cuva prvu slobodnu poziciju u j-toj koloni ili -1 ako je nema
+ *  short lastMove - koristi je samo minimax da odredi potez koji vodi do tog stanja
 */
 typedef struct state_ {
     char** st;
     short* top;
+    short lastMove;
 } state;
 
 typedef struct minMax_ {
@@ -44,6 +46,12 @@ typedef struct minMax_ {
     int col;
 } minMax;
 
+/**
+ *  Koristi je minimax za trazenje novih stanja igre.
+ *  
+ *  state* a - niz novih stanja
+ *  int size - velicina niza
+*/
 typedef struct stateArr_ {
     state* a;
     int size;

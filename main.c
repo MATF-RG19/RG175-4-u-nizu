@@ -106,7 +106,7 @@ void initialize() {
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
 
-    mode = 1;
+    mode = 2;
 
     getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
 
@@ -322,20 +322,24 @@ static void onTimer(int value) {
         int winner = evaluate(state);
         if(winner)
             printf("Pobednik: %d\n", winner);
-        freeState(state);
+        
 
         // Ako se igra protiv racunara, sada je na njega red.
         if(mode == 2 && player == '2') {
+            minMax bot = minimax(state,7,'2',INT_MIN, INT_MAX);
+            
+            freeState(state);
             // Trenutno racunar igra nasumicno.
-            int botCol;
+            /*
             do {
                 srand(time(NULL));
                 botCol = rand() % 7;
             } while(!validMove(&board, botCol));
+            */
 
             // Racunar zeton se iscrtava nad izabranom kolonom.
-            currToken.x += (botCol - currCol)*slotStep;
-            currCol = botCol;
+            currToken.x += (bot.col - currCol)*slotStep;
+            currCol = bot.col;
             glutPostRedisplay();
 
             // Pokrece se animacija za pad zetona.

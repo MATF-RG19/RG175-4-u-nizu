@@ -21,7 +21,7 @@ state* boardToState(gameBoard* board);
 void freeState(state* state);
 
 int evaluate(state* state);
-minMax minimax(state* state, int depth, int isMax, int alpha, int beta);
+minMax minimax(state* startState, int depth, char player, int alpha, int beta);
 
 stateArr getNextStates(state* state, char player);
 void freeStateArr(stateArr* stArr);

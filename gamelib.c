@@ -170,8 +170,6 @@ void freeState(state* state){
  *  i 0 ako nema pobednika.
 */
 int evaluate(state* state) {
-    // int winner = 0;
-
     /*
         Proverava se da li ima 4 u nizu po redovima.
         Ako u i-tom redu u koloni j=3 nema zetona, nema sigurno pobednika u tom redu,
@@ -183,7 +181,7 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i][j-1] && state->st[i][j-1] == state->st[i][j-2] &&
                 state->st[i][j-2] == state->st[i][j-3]) {
                 
-                return state->st[i][j] - '0';
+                return state->st[i][j] == '1' ? 1 : -1;
             }
     /*
         Proverava se po kolonama.
@@ -194,7 +192,7 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i+1][j] && state->st[i+1][j] == state->st[i+2][j] &&
                 state->st[i+2][j] == state->st[i+3][j]) {
                 
-                return state->st[i][j] - '0';
+                return state->st[i][j] == '1' ? 1 : -1;
             }
 
     // Slicno za dijagonale oblika '/'
@@ -203,7 +201,7 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i+1][j-1] && state->st[i+1][j-1] == state->st[i+2][j-2] &&
                 state->st[i+2][j-2] == state->st[i+3][j-3]) {
                 
-                return state->st[i][j] - '0';
+                return state->st[i][j] == '1' ? 1 : -1;
             }
 
     // Slicno za dijagonale oblika '\'
@@ -212,31 +210,72 @@ int evaluate(state* state) {
             if(state->st[i][j] == state->st[i+1][j+1] && state->st[i+1][j+1] == state->st[i+2][j+2] &&
                 state->st[i+2][j+2] == state->st[i+3][j+3]) {
                 
-                return state->st[i][j] - '0';
+                return state->st[i][j] == '1' ? 1 : -1;
             }
 
     return 0;
 }
 
-minMax minimax(state* state, int depth, int isMax, int alpha, int beta) {
-    /** TODO:
+/**
+ *  Implementira minimax algoritam sa alfa-beta odsecanjem.
+ * 
+ *  Vraca strukturu minMax koja sadrzi ocenu stanja i potez koji se bira.
+*/
+minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
     minMax node;
-    if(!depth) {
-        node.value = 0;
-        node.col = 0;
+    node.value = evaluate(startState);
+    node.col = startState->lastMove;
+    
+    // Proverava se da li je puna tabla tj da li su svi top[j]=-1
+    int unfinished = 7, j;
+    for(j=0; j<7; j++)
+        unfinished += startState->top[j];
 
+    // Izlaz iz rekurzije za 0-tu dubinu, ako postoji pobednik ili ako je puna tabla
+    if(!depth || node.value || !unfinished)
         return node;
-    }
+    
+    // Generisu se sledeca stanja sa svim mogucim potezima igraca player
+    stateArr stArr = getNextStates(startState, player);
 
-    if(isMax) {
+    // 1. igrac maksimizira, racunar minimizira
+    if(player == '1') {
         node.value = INT_MIN;
+        int i;
+        for(i=0; i<stArr.size; i++) {
+            minMax minVal = minimax(&stArr.a[i], depth-1, '2', alpha, beta);
+            
+            if(minVal.value > node.value) {
+                node.value = minVal.value;
+                node.col = stArr.a[i].lastMove;
+            }
 
-        
+            alpha = node.value > alpha? node.value : alpha;
+            
+            if(beta <= alpha)
+                break;
+        }
     } else {
         node.value = INT_MAX;
-    }
+        int i;
+        for(i=0; i<stArr.size; i++) {
+            minMax maxVal = minimax(&stArr.a[i], depth-1, '1', alpha, beta);
+            
+            if(maxVal.value < node.value) {
+                node.value = maxVal.value;
+                node.col = stArr.a[i].lastMove;
+            }
 
-    */
+            beta = node.value < beta ? node.value : beta;
+            
+            if(beta <= alpha)
+                break;
+        }
+    }   
+    
+    freeStateArr(&stArr);
+
+    return node;
 }
 
 /**
@@ -301,7 +340,9 @@ stateArr getNextStates(state* startState, char player) {
         int k = startState->top[j];
         if (k != -1) {
             stArr.a[i].st[k][j] = player;
-            stArr.a[i++].top[j]++;
+            stArr.a[i].top[j]--;
+            stArr.a[i].lastMove = j;
+            i++;
         }
     }
 
