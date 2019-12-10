@@ -319,24 +319,13 @@ static void onTimer(int value) {
         glutPostRedisplay();
 
         state* state = boardToState(&board);
-        state->lastMove = currCol;
-        int winner = evaluate(state);
-        if(winner == 1000 || winner == -1000)
-            printf("Pobednik: %d\n", winner);
+        if(evaluate(state) == 1000)
+            printf("Pobednik: 1\n");
         
 
         // Ako se igra protiv racunara, sada je na njega red.
         if(mode == 2 && player == '2') {
-            minMax bot = minimax(state,7,'2',INT_MIN, INT_MAX);
-            //printf("%d - %d\n", bot.value, bot.col);
-            
-            // Trenutno racunar igra nasumicno.
-            /*
-            do {
-                srand(time(NULL));
-                botCol = rand() % 7;
-            } while(!validMove(&board, botCol));
-            */
+            minMax bot = minimax(state,8,'2',INT_MIN, INT_MAX);
 
             // Racunar zeton se iscrtava nad izabranom kolonom.
             currToken.x += (bot.col - currCol)*slotStep;
@@ -346,6 +335,9 @@ static void onTimer(int value) {
             // Pokrece se animacija za pad zetona.
             glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
             animationOngoing = 1;
+
+            if(evaluate(state) == -1000)
+                printf("Pobednik: Racunar\n");
         }
 
         freeState(state);

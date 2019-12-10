@@ -23,7 +23,6 @@ void freeState(state* state);
 int evaluate(state* state);
 minMax minimax(state* startState, int depth, char player, int alpha, int beta);
 
-stateArr getNextStates(state* state, char player);
-void freeStateArr(stateArr* stArr);
+state* copyState(state* src);
 
 #endif

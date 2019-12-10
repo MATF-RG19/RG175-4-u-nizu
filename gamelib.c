@@ -378,7 +378,7 @@ int evaluate(state* state) {
     return score;
 }
 
-/** TOFIX: U nekim slucajevima ne primecuje da protivnik u sledecem potezu pobedjuje
+/**
  *  Implementira minimax algoritam sa alfa-beta odsecanjem.
  * 
  *  Vraca strukturu minMax koja sadrzi ocenu stanja i potez koji se bira.
@@ -386,7 +386,7 @@ int evaluate(state* state) {
 minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
     minMax node;
     node.value = evaluate(startState);
-    node.col = startState->lastMove;
+    node.col = 0;
     
     // Proverava se da li je puna tabla tj da li su svi top[j]=-1
     int unfinished = 7, j;
@@ -396,132 +396,97 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
     // Izlaz iz rekurzije za 0-tu dubinu, ako postoji pobednik ili ako je puna tabla
     if(!depth || node.value == 1000 || node.value == -1000 || !unfinished)
         return node;
-    
-    // Generisu se sledeca stanja sa svim mogucim potezima igraca player
-    stateArr stArr = getNextStates(startState, player);
 
     // 1. igrac maksimizira, racunar minimizira
     if(player == '1') {
         node.value = INT_MIN;
         int i;
-        for(i=0; i<stArr.size; i++) {
-            minMax minVal = minimax(&stArr.a[i], depth-1, '2', alpha, beta);
+        for(i=0; i<7; i++) {
+            // Prelazi na sledeci iterator ako je kolona puna
+            if(startState->top[i] == -1)
+                continue;
+
+            // Generise se novo stanje ubacivanjem zetona u i-tu kolonu
+            state* next = copyState(startState);
+            next->st[next->top[i]--][i] = '1';
+            
+            minMax minVal = minimax(next, depth-1, '2', alpha, beta);
             
             if(minVal.value > node.value) {
                 node.value = minVal.value;
-                node.col = stArr.a[i].lastMove;
-                //printf("1. %d %d\n", node.value, node.col);
+                node.col = i;
+                alpha = node.value > alpha? node.value : alpha;
             }
+            freeState(next);
 
-            alpha = node.value > alpha? node.value : alpha;
-            
             if(beta <= alpha)
                 break;
         }
     } else {
         node.value = INT_MAX;
         int i;
-        for(i=0; i<stArr.size; i++) {
-            minMax maxVal = minimax(&stArr.a[i], depth-1, '1', alpha, beta);
+        for(i=0; i<7; i++) {
+            // Prelazi na sledeci iterator ako je kolona puna
+            if(startState->top[i] == -1)
+                continue;
+            
+            // Generise se novo stanje ubacivanjem zetona u i-tu kolonu
+            state* next = copyState(startState);
+            next->st[next->top[i]--][i] = '2';
+
+            minMax maxVal = minimax(next, depth-1, '1', alpha, beta);
             
             if(maxVal.value < node.value) {
                 node.value = maxVal.value;
-                node.col = stArr.a[i].lastMove;
-                //printf("2. %d %d\n", node.value, node.col);
+                node.col = i;
+                beta = node.value < beta ? node.value : beta;
             }
 
-            beta = node.value < beta ? node.value : beta;
+            freeState(next);
             
             if(beta <= alpha)
                 break;
         }
     }   
     
-    freeStateArr(&stArr);
 
     return node;
 }
 
 /**
- *  Generise nova stanja za f-ju minimax
- * 
- *  Vraca strukturu stateArr koja sadrzi niz stanja i velicinu tog niza.
- *  Matrice karaktera unutar svakog stanja (unutar strukture state) se moraju
- *  naknadno dealocirati, kao i nizovi top, npr. f-jom freeStateArr.
+ *  Kopira stanje src i vraca pokazivac na kopiju.
 */
-stateArr getNextStates(state* startState, char player) {
-    stateArr stArr;
-
-    // Nalazi se broj mogucih novih stanja i alocira se prostor za niz.
-    stArr.size = 0;
-    int i;
-    for(i=0; i<7; i++)
-        if(startState->top[i] != -1)
-            stArr.size++;
-    
-    stArr.a = malloc(stArr.size * sizeof(state));
-    if(stArr.a == NULL) {
-        fprintf(stderr, "getNextStates() malloc fail\n");
+state* copyState(state* src) {
+    state* dest = malloc(sizeof(state));
+    if(dest == NULL) {
+        fprintf(stderr, "copyState malloc fail\n");
         exit(EXIT_FAILURE);
     }
-    
-    // Pravi se stArr.size duplikata od startState
-    for(i=0; i<stArr.size; i++) {
-        state next;
-        // Kopira se matrica karaktera
-        next.st = malloc(6*sizeof(char*));
-        if(next.st == NULL) {
-            fprintf(stderr, "getNextStates() malloc fail\n");
+
+    dest->st = malloc(6*sizeof(char*));
+    if(dest->st == NULL) {
+        fprintf(stderr, "copyState malloc fail\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int i;
+    for(i=0; i<6; i++) {
+        dest->st[i] = malloc(7);
+        if(dest->st[i] == NULL) {
+            fprintf(stderr, "copyState malloc fail\n");
             exit(EXIT_FAILURE);
         }
-    
-        int j;
-        for(j=0; j<6; j++) {
-            next.st[j] = malloc(7);
-            if(next.st[j] == NULL) {
-                fprintf(stderr, "getNextStates() malloc fail\n");
-                exit(EXIT_FAILURE);
-            }
-
-            memcpy(next.st[j], startState->st[j], 7);
-        }
-
-        // Kopira se niz top
-        next.top = malloc(7*sizeof(short));
-        if(next.top == NULL) {
-            fprintf(stderr, "getNextStates() malloc fail\n");
-            exit(EXIT_FAILURE);
-        }
-        for(j=0; j<7; j++)
-            next.top[j] = startState->top[j];
-
-        stArr.a[i] = next;
+        memcpy(dest->st[i], src->st[i], 7);
     }
 
-    // Dodaju se novi odigrani potezi igraca player i azurira niz top    
-    int j;
-    for(i=0, j=0; j<7; j++) {
-        int k = startState->top[j];
-        if (k != -1) {
-            stArr.a[i].st[k][j] = player;
-            stArr.a[i].top[j]--;
-            stArr.a[i].lastMove = j;
-            i++;
-        }
+    dest->top = malloc(7*sizeof(short));
+    if(dest->top == NULL) {
+        fprintf(stderr, "copyState malloc fail\n");
+        exit(EXIT_FAILURE);
     }
 
-    return stArr;
-}
+    for(i=0; i<7; i++)
+        dest->top[i] = src->top[i];
 
-/**
- *  Dealocira sve matrica karaktera stanja na ciji niz pokazuje stArr.
-*/
-void freeStateArr(stateArr* stArr) {
-    int i,j;
-    for(i=0; i<stArr->size; i++) {
-        for(j=0; j<6; j++)
-            free(stArr->a[i].st[j]);
-        free(stArr->a[i].st);
-        free(stArr->a[i].top);
-    }
+    return dest;
 }
