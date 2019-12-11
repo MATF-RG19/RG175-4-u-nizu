@@ -326,6 +326,48 @@ static void onTimer(int value) {
         // Ako se igra protiv racunara, sada je na njega red.
         if(mode == 2 && player == '2') {
             minMax bot = minimax(state,8,'2',INT_MIN, INT_MAX);
+            
+            /*
+                Ako minimax izracuna vec u prvoj grani da ce izgubiti, on "odustaje"
+                od odbrane jer predvidja kako ce igrac birati poteze, sto moze da izgleda
+                cudno.
+
+                Npr. ako je igrac vec matirao racunar tj ima npr vec odmah 2 kolone u kojima
+                moze postici pobedu, racunar nece ni pokusati da se brani, da npr odigra u
+                jednoj od tih kolona kao sto bi uradio covek, vec ce izabrati prvu slobodnu
+                kolonu.
+
+                Cak je mnogo veci problem kada izracuna da ce biti matiran kroz nekoliko poteza,
+                i opet bira prvu slobodnu kolonu jer mu je "svejedno".
+
+                Po sledecoj klauzi racunar bira potez koji bi izabrao prvi igrac, za depth = 1 
+            */
+            if(bot.value == 1000)
+                bot = minimax(state,1,'1',INT_MIN, INT_MAX);
+            
+            /*
+                Problem nastaje kada racunar nadje pobedu vec u najlevljoj grani i vrsi odsecanje,
+                iako bi mogao u jednom potezu izboriti pobedu u nekoj drugoj koloni.
+
+                U narednom bloku se resava takav slucaj. "Rucno" se odigravaju potezi za moguce kolone
+                i ako se u jednoj ostvaruje pobeda, bira se ta kolona.
+            */
+            if(bot.value == -1000) {
+                int j;
+                for(j=0; j<7; j++)
+                    if(state->top[j] != -1) {
+                        
+                        state->st[state->top[j]--][j] = '2';
+                        
+                        int score = evaluate(state);
+                        state->st[++state->top[j]][j] = '0';
+                        
+                        if(score == -1000) {
+                            bot.col = j;
+                            break;
+                        }
+                    }
+            }
 
             // Racunar zeton se iscrtava nad izabranom kolonom.
             currToken.x += (bot.col - currCol)*slotStep;
