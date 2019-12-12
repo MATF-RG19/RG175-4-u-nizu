@@ -23,6 +23,8 @@ void freeState(state* state);
 int evaluate(state* state);
 minMax minimax(state* startState, int depth, char player, int alpha, int beta);
 
+int botMakeMove(state* state, int depth);
+
 state* copyState(state* src);
 
 #endif

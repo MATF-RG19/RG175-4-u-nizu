@@ -23,16 +23,15 @@
  *        WASD      - pomeranje kamere
  * 
  *  Napomena: 
- *      Trenutno se mod igre eksplicitno podesava u funkciji initialize() (mode=1 ili mode=2).
- *  Moguce je izabrati mod protiv racunara ali on trenutno bira poteze nasumicno.
- *  Sto je vise punih kolona, teze ce nalaziti slobodnu kolonu pa zato taj izbor ume da
- *  traje duze i deluje da program blokira, ali svakako je to samo placeholder.
- * 
- *  TODO: implementirati minimax algoritam
+ *      Trenutno se mod igre eksplicitno podesava u funkciji initialize() (mode=1 ili mode=2),
+ *  prvi rezim za dva igraca i drugi za igraca protiv racunara.
 */
 
 // 2 igraca (1) ili igrac vs. bot (2)
 static int mode;
+
+// 1 ako je igra u toku, 0 inace
+static int game;
 
 static int animationOngoing = 0;
 
@@ -107,6 +106,7 @@ void initialize() {
     board = gameBoardInit(0, 0, slotStep);
 
     mode = 2;
+    game = 1;
 
     getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
 
@@ -175,6 +175,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'R':
             freeGameBoard(&board);
             board = gameBoardInit(0, 0, slotStep);
+            game = 1;
             currToken.player = player = '1';
 
             glutPostRedisplay();
@@ -247,7 +248,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         // 2.igrac - odigrava se potez ako je validan.
         case 'k':
         case 'K':
-            if(mode != 1 || player != '2')
+            if(!game || mode != 1 || player != '2')
                 break;
             if(!animationOngoing && validMove(&board, currCol)) {
                 
@@ -288,7 +289,7 @@ static void onArrowKey(int key, int x, int y) {
 
         // Odigrava se potez ako je validan.
         case GLUT_KEY_DOWN:
-            if(player != '1')
+            if(!game || player != '1')
                 break;
             if(!animationOngoing && validMove(&board, currCol)) {
                 
@@ -302,15 +303,21 @@ static void onArrowKey(int key, int x, int y) {
 }
 
 static void onTimer(int value) {
-    if(value != TIMER_ID)
+    if(!game || value != TIMER_ID)
         return;
 
     if(currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
         animationOngoing = 0;
-
+        
         // Kada padne zeton azurira se tabla.
         makeMove(&board, currCol, player);
-                
+        
+        state* state = boardToState(&board);
+        if(evaluate(state) == -1000) {
+            game = 0;
+            printf("Pobednik: Racunar\n");
+        }
+        
         // Id igraca na potezu se alternira.
         player = player == '1' ? '2' : '1';
         currToken.player = player;
@@ -318,68 +325,24 @@ static void onTimer(int value) {
 
         glutPostRedisplay();
 
-        state* state = boardToState(&board);
-        if(evaluate(state) == 1000)
+        state = boardToState(&board);
+        if(evaluate(state) == 1000) {
+            game = 0;
             printf("Pobednik: 1\n");
-        
+        }
 
         // Ako se igra protiv racunara, sada je na njega red.
-        if(mode == 2 && player == '2') {
-            minMax bot = minimax(state,8,'2',INT_MIN, INT_MAX);
+        if(game && mode == 2 && player == '2') {
+            int botCol = botMakeMove(state, 8);
             
-            /*
-                Ako minimax izracuna vec u prvoj grani da ce izgubiti, on "odustaje"
-                od odbrane jer predvidja kako ce igrac birati poteze, sto moze da izgleda
-                cudno.
-
-                Npr. ako je igrac vec matirao racunar tj ima npr vec odmah 2 kolone u kojima
-                moze postici pobedu, racunar nece ni pokusati da se brani, da npr odigra u
-                jednoj od tih kolona kao sto bi uradio covek, vec ce izabrati prvu slobodnu
-                kolonu.
-
-                Cak je mnogo veci problem kada izracuna da ce biti matiran kroz nekoliko poteza,
-                i opet bira prvu slobodnu kolonu jer mu je "svejedno".
-
-                Po sledecoj klauzi racunar bira potez koji bi izabrao prvi igrac, za depth = 1 
-            */
-            if(bot.value == 1000)
-                bot = minimax(state,1,'1',INT_MIN, INT_MAX);
-            
-            /*
-                Problem nastaje kada racunar nadje pobedu vec u najlevljoj grani i vrsi odsecanje,
-                iako bi mogao u jednom potezu izboriti pobedu u nekoj drugoj koloni.
-
-                U narednom bloku se resava takav slucaj. "Rucno" se odigravaju potezi za moguce kolone
-                i ako se u jednoj ostvaruje pobeda, bira se ta kolona.
-            */
-            if(bot.value == -1000) {
-                int j;
-                for(j=0; j<7; j++)
-                    if(state->top[j] != -1) {
-                        
-                        state->st[state->top[j]--][j] = '2';
-                        
-                        int score = evaluate(state);
-                        state->st[++state->top[j]][j] = '0';
-                        
-                        if(score == -1000) {
-                            bot.col = j;
-                            break;
-                        }
-                    }
-            }
-
             // Racunar zeton se iscrtava nad izabranom kolonom.
-            currToken.x += (bot.col - currCol)*slotStep;
-            currCol = bot.col;
+            currToken.x += (botCol - currCol)*slotStep;
+            currCol = botCol;
             glutPostRedisplay();
-
+            
             // Pokrece se animacija za pad zetona.
             glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
             animationOngoing = 1;
-
-            if(evaluate(state) == -1000)
-                printf("Pobednik: Racunar\n");
         }
 
         freeState(state);
