@@ -9,7 +9,7 @@
 #include "structlib.h"
 
 #define TIMER_ID 1
-#define TIMER_INTERVAL 10
+#define TIMER_INTERVAL 10 
 
 /**
  *  Uputstva za igru:
@@ -41,7 +41,7 @@ static const float radius = 0.1;
 // horizontalno rastojanje izmedju centara krugova dve susedne kolone
 static float slotStep;
 // vektor kretanja za pad zetona
-static float vY = -0.1;
+static float vY;
 
 // zeton kojim se bira potez
 token currToken;
@@ -101,6 +101,7 @@ void initialize() {
     glEnable(GL_DEPTH_TEST);
 
     slotStep  = 2*radius + radius/4;
+    vY = -slotStep/2;
 
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
@@ -157,6 +158,23 @@ static void onDisplay(void) {
                 drawToken(&board.tokens[i][j], radius);
 
     glutSwapBuffers();
+/*
+        // Ako se igra protiv racunara, sada je na njega red.
+        if(game && mode == 2 && player == '2') {
+            state* state = boardToState(&board);
+            int botCol = botMakeMove(state, 8);
+            freeState(state);
+            
+            // Racunar zeton se iscrtava nad izabranom kolonom.
+            currToken.x += (botCol - currCol)*slotStep;
+            currCol = botCol;
+            glutPostRedisplay();
+            
+            // Pokrece se animacija za pad zetona.
+            glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
+            animationOngoing = 1;
+        }
+  */  
 }
 
 static void onKeyboard(unsigned char key, int x, int y) {
@@ -303,7 +321,7 @@ static void onArrowKey(int key, int x, int y) {
 }
 
 static void onTimer(int value) {
-    if(!game || value != TIMER_ID)
+    if(!animationOngoing || !game || value != TIMER_ID)
         return;
 
     if(currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
@@ -313,9 +331,11 @@ static void onTimer(int value) {
         makeMove(&board, currCol, player);
         
         state* state = boardToState(&board);
-        if(evaluate(state) == -1000) {
+        int score = evaluate(state);
+
+        if(score == -1000) {
             game = 0;
-            printf("Pobednik: Racunar\n");
+            printf("Pobednik: %d.\n", score == 1000 ? 1 : 2);
         }
         
         // Id igraca na potezu se alternira.
@@ -324,13 +344,12 @@ static void onTimer(int value) {
         currToken.y = slotStep;
 
         glutPostRedisplay();
-
-        state = boardToState(&board);
-        if(evaluate(state) == 1000) {
+        
+        if(score == 1000) {
             game = 0;
-            printf("Pobednik: 1\n");
+            printf("Pobednik: 1.\n");
         }
-
+        
         // Ako se igra protiv racunara, sada je na njega red.
         if(game && mode == 2 && player == '2') {
             int botCol = botMakeMove(state, 8);
@@ -344,7 +363,7 @@ static void onTimer(int value) {
             glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
             animationOngoing = 1;
         }
-
+        
         freeState(state);
 
         return;
