@@ -75,6 +75,51 @@ static void onArrowKey(int key, int x, int y);
 static void onTimer(int value);
 void initialize();
 
+void setOrthographicProjection() {
+
+	// switch to projection mode
+	glMatrixMode(GL_PROJECTION);
+
+	// save previous matrix which contains the
+	//settings for the perspective projection
+	glPushMatrix();
+
+	// reset matrix
+	glLoadIdentity();
+
+	// set a 2D orthographic projection
+	gluOrtho2D(0, windowWidth, windowHeight, 0);
+
+	// switch back to modelview mode
+	glMatrixMode(GL_MODELVIEW);
+}
+void renderSpacedBitmapString(
+
+			float x,
+			float y,
+			int spacing,
+			void *font,
+			char *string) {
+
+  char *c;
+  int x1=x;
+
+  for (c=string; *c != '\0'; c++) {
+
+	glRasterPos2f(x1,y);
+	glutBitmapCharacter(font, *c);
+	x1 = x1 + glutBitmapWidth(font,*c) + spacing;
+  }
+}
+void restorePerspectiveProjection() {
+
+	glMatrixMode(GL_PROJECTION);
+	// restore previous projection matrix
+	glPopMatrix();
+
+	// get back to modelview mode
+	glMatrixMode(GL_MODELVIEW);
+}
 int main(int argc, char** argv) {
 
     glutInit(&argc, argv);
@@ -130,12 +175,11 @@ static void onReshape(int width, int height) {
 static void onDisplay(void) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glViewport(0, 0, windowWidth, windowHeight);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(60, windowWidth/(float)windowHeight, 1, 5);
-
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
@@ -150,31 +194,32 @@ static void onDisplay(void) {
 
     // Crta se zeton kojim se bira potez
     drawToken(&currToken, radius);
-
+    
     int i,j;
     for(i=0; i<6; i++)
         for(j=0; j<7; j++)
             if(board.tokens[i][j].player != '0')
                 drawToken(&board.tokens[i][j], radius);
 
+    
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    glLoadIdentity();
+    gluOrtho2D(0.0, windowWidth, 0.0, windowHeight);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    
+    glLoadIdentity();
+
+    glColor3f(1,0,0);
+    glRasterPos2f(20,windowHeight-40);
+    char* c = "uputstva";
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c[i]);
+	
     glutSwapBuffers();
-/*
-        // Ako se igra protiv racunara, sada je na njega red.
-        if(game && mode == 2 && player == '2') {
-            state* state = boardToState(&board);
-            int botCol = botMakeMove(state, 8);
-            freeState(state);
-            
-            // Racunar zeton se iscrtava nad izabranom kolonom.
-            currToken.x += (botCol - currCol)*slotStep;
-            currCol = botCol;
-            glutPostRedisplay();
-            
-            // Pokrece se animacija za pad zetona.
-            glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
-            animationOngoing = 1;
-        }
-  */  
 }
 
 static void onKeyboard(unsigned char key, int x, int y) {
