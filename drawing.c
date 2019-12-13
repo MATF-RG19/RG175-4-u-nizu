@@ -377,6 +377,19 @@ void printInstructions(float windowWidth, float windowHeight) {
  *  Ispisuje pobednika i prompt za novu igru/izlaz
 */
 void printWinner(float windowWidth, float windowHeight, int winner, int mode) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    glLoadIdentity();
+    gluOrtho2D(0, windowWidth, windowHeight, 0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    
+    glLoadIdentity();
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+
     if(winner == 1)
         glColor3f(0.5,0,0);
     else
@@ -414,4 +427,41 @@ void printWinner(float windowWidth, float windowHeight, int winner, int mode) {
 
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
+}
+
+/**
+ *  Ispisuje prompt za izbor rezima igre.
+*/
+void printNewGamePrompt(float windowWidth, float windowHeight) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    glLoadIdentity();
+    gluOrtho2D(0, windowWidth, windowHeight, 0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    
+    glLoadIdentity();
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+
+    char* c = "IZABERITE REZIM IGRE";
+    glColor3f(0,0,0.7);
+    glRasterPos2f(2.12*windowWidth/5,2.5*windowHeight/15);
+
+    int i;
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c[i]);
+
+    glColor3f(0,0,0.5);
+    c = "(1) Igrac 1 - Igrac 2";
+    glRasterPos2f(2.15*windowWidth/5,3*windowHeight/15);
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    c = "(2) Igrac - Racunar ";
+    glRasterPos2f(2.2*windowWidth/5,3.3*windowHeight/15);
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
 }

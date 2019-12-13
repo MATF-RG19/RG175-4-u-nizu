@@ -28,10 +28,10 @@
 */
 
 // 2 igraca (1) ili igrac vs. bot (2)
-static int mode;
+static int mode = 0;
 
 // 1 ako je igra u toku, 0 inace
-static int game;
+static int game = 0;
 // 1 ili 2, uslovna promenljiva za ispis pobednika
 static int winner = 0;
 
@@ -111,9 +111,6 @@ void initialize() {
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
 
-    mode = 2;
-    game = 1;
-
     getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
 
     // Podesavaju se pocetne koordinate zetona kojim biramo potez
@@ -161,6 +158,10 @@ static void onDisplay(void) {
             if(board.tokens[i][j].player != '0')
                 drawToken(&board.tokens[i][j], radius);
 
+    // Ispisuje se prompt za izbor rezima igre (tasteri 1 ili 2)
+    if(!mode)
+        printNewGamePrompt(windowWidth, windowHeight);
+
     // Ispisuje se uputstva ukoliko je aktiviran prikaz.
     if(toggleInstructions)
         printInstructions(windowWidth, windowHeight);
@@ -183,12 +184,30 @@ static void onKeyboard(unsigned char key, int x, int y) {
             exit(EXIT_SUCCESS);
             break;
 
+        // Bira se rezim igre za dva igraca samo kada je ispisan prompt za izbor.
+        case '1':
+            if(mode)
+                break;
+            mode = 1;
+            game = 1;
+            glutPostRedisplay();
+            break;
+
+        // Slicno za rezim protiv racunara.
+        case '2':
+            if(mode)
+                break;
+            mode = 2;
+            game = 1;
+            glutPostRedisplay();
+            break;
+
         // Resetuje se tabla.
         case 'r':
         case 'R':
             freeGameBoard(&board);
             board = gameBoardInit(0, 0, slotStep);
-            game = 1;
+            mode = 0;
             winner = 0;
             currToken.player = player = '1';
 
