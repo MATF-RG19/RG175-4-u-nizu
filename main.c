@@ -32,6 +32,8 @@ static int mode;
 
 // 1 ako je igra u toku, 0 inace
 static int game;
+// 1 ili 2, uslovna promenljiva za ispis pobednika
+static int winner = 0;
 
 static int animationOngoing = 0;
 
@@ -78,51 +80,6 @@ static void onArrowKey(int key, int x, int y);
 static void onTimer(int value);
 void initialize();
 
-void setOrthographicProjection() {
-
-	// switch to projection mode
-	glMatrixMode(GL_PROJECTION);
-
-	// save previous matrix which contains the
-	//settings for the perspective projection
-	glPushMatrix();
-
-	// reset matrix
-	glLoadIdentity();
-
-	// set a 2D orthographic projection
-	gluOrtho2D(0, windowWidth, windowHeight, 0);
-
-	// switch back to modelview mode
-	glMatrixMode(GL_MODELVIEW);
-}
-void renderSpacedBitmapString(
-
-			float x,
-			float y,
-			int spacing,
-			void *font,
-			char *string) {
-
-  char *c;
-  int x1=x;
-
-  for (c=string; *c != '\0'; c++) {
-
-	glRasterPos2f(x1,y);
-	glutBitmapCharacter(font, *c);
-	x1 = x1 + glutBitmapWidth(font,*c) + spacing;
-  }
-}
-void restorePerspectiveProjection() {
-
-	glMatrixMode(GL_PROJECTION);
-	// restore previous projection matrix
-	glPopMatrix();
-
-	// get back to modelview mode
-	glMatrixMode(GL_MODELVIEW);
-}
 int main(int argc, char** argv) {
 
     glutInit(&argc, argv);
@@ -189,13 +146,13 @@ static void onDisplay(void) {
 
     glTranslatef(-0.6, 0.2, 0);
 
-    // Podesava osvetljenje
+    // Podesava osvetljenje.
     setLightingParams();
 
-    // Iscrtava celokupnu tablu za igru
+    // Iscrtava celokupnu tablu za igru.
     drawBoard(0, 0, 0, 0.05, radius);
 
-    // Crta se zeton kojim se bira potez
+    // Crta se zeton kojim se bira potez.
     drawToken(&currToken, radius);
     
     int i,j;
@@ -204,10 +161,14 @@ static void onDisplay(void) {
             if(board.tokens[i][j].player != '0')
                 drawToken(&board.tokens[i][j], radius);
 
-    // Ispisuje se uputstva ukoliko je aktiviran prikaz
+    // Ispisuje se uputstva ukoliko je aktiviran prikaz.
     if(toggleInstructions)
         printInstructions(windowWidth, windowHeight);
 	
+    // Ispisuje se pobednik u slucaju necije pobede i prompt za novu igru/izlaz.
+    if(winner)
+        printWinner(windowWidth, windowHeight, winner, mode);
+
     glutSwapBuffers();
 }
 
@@ -228,6 +189,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
             freeGameBoard(&board);
             board = gameBoardInit(0, 0, slotStep);
             game = 1;
+            winner = 0;
             currToken.player = player = '1';
 
             glutPostRedisplay();
@@ -376,7 +338,8 @@ static void onTimer(int value) {
 
         if(score == -1000) {
             game = 0;
-            printf("Pobednik: %d.\n", score == 1000 ? 1 : 2);
+            winner = 2;
+            glutPostRedisplay();
         }
         
         // Id igraca na potezu se alternira.
@@ -388,7 +351,8 @@ static void onTimer(int value) {
         
         if(score == 1000) {
             game = 0;
-            printf("Pobednik: 1.\n");
+            winner = 1;
+            glutPostRedisplay();
         }
         
         // Ako se igra protiv racunara, sada je na njega red.

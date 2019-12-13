@@ -21,5 +21,6 @@ void setLightingParams();
 void getCameraCoords(float r, float theta, float phi, float* x, float* y, float* z);
 
 void printInstructions(float windowWidth, float windowHeight);
+void printWinner(float windowWidth, float windowHeight, int winner, int mode);
 
 #endif

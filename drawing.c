@@ -372,3 +372,46 @@ void printInstructions(float windowWidth, float windowHeight) {
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
 }
+
+/**
+ *  Ispisuje pobednika i prompt za novu igru/izlaz
+*/
+void printWinner(float windowWidth, float windowHeight, int winner, int mode) {
+    if(winner == 1)
+        glColor3f(0.5,0,0);
+    else
+        glColor3f(0.5,0.5,0);
+
+    char* c;
+    if(mode == 1) {
+        if(winner == 1)
+            c = "Pobednik: 1. IGRAC!";
+        else
+            c = "Pobednik: 2. IGRAC!";
+    } else {
+        if(winner == 1)
+            c = "Pobednik: IGRAC!";
+        else
+            c = "Pobednik: RACUNAR!";
+    }
+
+    glRasterPos2f(2.1*windowWidth/5,2.5*windowHeight/15);
+
+    int i;
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c[i]);
+
+    glColor3f(0,0,0);
+
+    glRasterPos2f(2.34*windowWidth/5,3.1*windowHeight/15);
+    c = "nova igra - R";
+
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
+
+    glRasterPos2f(2.37*windowWidth/5,3.4*windowHeight/15);
+    c = "izlaz - ESC";
+
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
+}
