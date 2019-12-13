@@ -35,7 +35,7 @@ static int game = 0;
 // 1 ili 2, uslovna promenljiva za ispis pobednika
 static int winner = 0;
 
-static int animationOngoing = 0;
+static int animation = 0;
 
 // Uslovna promenljiva za prikazivanje uputstava
 static int toggleInstructions = 1;
@@ -207,8 +207,12 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'R':
             freeGameBoard(&board);
             board = gameBoardInit(0, 0, slotStep);
+            animation = 0;
             mode = 0;
+            game = 0;
             winner = 0;
+            currToken.x = 3*slotStep;
+            currToken.y = slotStep;
             currToken.player = player = '1';
 
             glutPostRedisplay();
@@ -266,7 +270,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'J':
             if(mode != 1 || player != '2')
                 break;
-            if(currCol > 0 && !animationOngoing) {
+            if(currCol > 0 && !animation) {
                 currToken.x -= slotStep;
                 currCol--;
                 glutPostRedisplay();
@@ -278,7 +282,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'L':
             if(mode != 1 || player != '2')
                 break;
-            if(currCol < 6 && !animationOngoing) {
+            if(currCol < 6 && !animation) {
                 currToken.x += slotStep;
                 currCol++;
                 glutPostRedisplay();
@@ -290,11 +294,11 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'K':
             if(!game || mode != 1 || player != '2')
                 break;
-            if(!animationOngoing && validMove(&board, currCol)) {
+            if(!animation && validMove(&board, currCol)) {
                 
                 // Pokrece se animacija pada zetona.
                 glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
-                animationOngoing = 1;
+                animation = 1;
             }
             break;
     }   
@@ -309,7 +313,7 @@ static void onArrowKey(int key, int x, int y) {
         case GLUT_KEY_LEFT:
             if(player != '1')
                 break;
-            if(currCol > 0 && !animationOngoing) {
+            if(currCol > 0 && !animation) {
                 currToken.x -= slotStep;
                 currCol--;
                 glutPostRedisplay();
@@ -320,7 +324,7 @@ static void onArrowKey(int key, int x, int y) {
         case GLUT_KEY_RIGHT:
             if(player != '1')
                 break;
-            if(currCol < 6 && !animationOngoing) {
+            if(currCol < 6 && !animation) {
                 currToken.x += slotStep;
                 currCol++;
                 glutPostRedisplay();
@@ -331,23 +335,59 @@ static void onArrowKey(int key, int x, int y) {
         case GLUT_KEY_DOWN:
             if(!game || player != '1')
                 break;
-            if(!animationOngoing && validMove(&board, currCol)) {
+            if(!animation && validMove(&board, currCol)) {
                 
                 // Pokrece se animacija pada zetona.
                 glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
-                animationOngoing = 1;
+                animation = 1;
             }
 
             break;
     }
 }
 
+/**
+ *  Animira pad zetona.
+ * 
+ *  U prvoj fazi (animation = 1) zeton prosto pada. U slucaju najviseg
+ *  reda table to je i poslednja faza. 
+ * 
+ *  Inace se pokrece druga faza (animation = 2) gde zeton blago odskace na gore.
+ *  Pocetni vektor odskoka je u startu manjeg intenziteta i sada se u
+ *  svakom pozivu dodatno deli ga konstantnim faktorom.
+ * 
+ *  Kraj druge faze je kada intenzitet stekne vrlo malu vrednost. Menja mu se smer
+ *  i pokrece treca faza (animation = 3) i analogno drugoj fazi, intenzitet sada
+ *  u svakom pozivu raste dok zeton ne dodje na svoje mesto.
+*/
 static void onTimer(int value) {
-    if(!animationOngoing || !game || value != TIMER_ID)
+    if(!animation || !game || value != TIMER_ID)
         return;
-
-    if(currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
-        animationOngoing = 0;
+    // Uslov za kraj prve faze osim za red table na vrhu
+    if(animation == 1 && board.topCol[currCol] > 0 &&
+        currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
+            
+        animation = 2;
+        vY = -vY/3;
+        currToken.y += vY;
+        
+        glutPostRedisplay();
+        glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
+        
+        return;
+    }
+    // Uslov za kraj druge faze
+    if(animation == 2 && vY <= 0.00001) {
+        
+        animation = 3;
+        vY = -vY;
+    }
+    // Obuhvata slucaj kraja trece faze i slucaja kada zeton ide u najvisi red
+    if(animation != 2 && 
+        currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
+        
+        animation = 0;
+        vY = -slotStep/2;
         
         // Kada padne zeton azurira se tabla.
         makeMove(&board, currCol, player);
@@ -376,6 +416,11 @@ static void onTimer(int value) {
         
         // Ako se igra protiv racunara, sada je na njega red.
         if(game && mode == 2 && player == '2') {
+            /* 
+                Depth = 8 je najveca dubina na kojoj se botMakeMove()
+                "odmah" izvrsava, osim u eventualno 2,3 poteza na pocetku igre
+                kada laguje za ~1s
+            */
             int botCol = botMakeMove(state, 8);
             
             // Racunar zeton se iscrtava nad izabranom kolonom.
@@ -383,20 +428,29 @@ static void onTimer(int value) {
             currCol = botCol;
             glutPostRedisplay();
             
-            // Pokrece se animacija za pad zetona.
-            glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
-            animationOngoing = 1;
+            /*
+                Pokrece se animacija za pad racunarovog zetona.
+                Interval je malo "veci" jer se u skoro svim slucajevima
+                minimax brzo zaustavlja i zuti zeton pada odmah za crvenim
+                sto nije optimalno/realisticno.
+            */
+            glutTimerFunc(300, onTimer, TIMER_ID);
+            animation = 1;
         }
         
         freeState(state);
 
         return;
     }
-
+    if(animation == 2)
+        vY /= 1.5;
+    else if(animation == 3 && vY > -slotStep/16)
+        vY *= 1.5;
+    
     currToken.y += vY;
     glutPostRedisplay();
 
-    if (animationOngoing) {
+    if (animation) {
         glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
     }
 }
