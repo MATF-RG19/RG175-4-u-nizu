@@ -20,4 +20,6 @@ void setLightingParams();
 
 void getCameraCoords(float r, float theta, float phi, float* x, float* y, float* z);
 
+void printInstructions(float windowWidth, float windowHeight);
+
 #endif

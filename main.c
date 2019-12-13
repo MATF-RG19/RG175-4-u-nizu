@@ -35,6 +35,9 @@ static int game;
 
 static int animationOngoing = 0;
 
+// Uslovna promenljiva za prikazivanje uputstava
+static int toggleInstructions = 1;
+
 // poluprecnik kruga svake celije
 static const float radius = 0.1;
 
@@ -201,23 +204,9 @@ static void onDisplay(void) {
             if(board.tokens[i][j].player != '0')
                 drawToken(&board.tokens[i][j], radius);
 
-    
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-
-    glLoadIdentity();
-    gluOrtho2D(0.0, windowWidth, 0.0, windowHeight);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    
-    glLoadIdentity();
-
-    glColor3f(1,0,0);
-    glRasterPos2f(20,windowHeight-40);
-    char* c = "uputstva";
-    for(i=0; c[i]; i++)
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c[i]);
+    // Ispisuje se uputstva ukoliko je aktiviran prikaz
+    if(toggleInstructions)
+        printInstructions(windowWidth, windowHeight);
 	
     glutSwapBuffers();
 }
@@ -243,6 +232,13 @@ static void onKeyboard(unsigned char key, int x, int y) {
 
             glutPostRedisplay();
 
+            break;
+
+        // Prikazuju se ili sakrivaju uputstva.
+        case 'v':
+        case 'V':
+            toggleInstructions = !toggleInstructions;
+            glutPostRedisplay();
             break;
 
         // Pomera se kamera.

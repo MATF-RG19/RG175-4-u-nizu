@@ -316,3 +316,59 @@ void getCameraCoords(float r, float theta, float phi, float* x, float* y, float*
     *y = r * cos(phi); 
     *z = r * cos(theta) * sin(phi);
 }
+
+/**
+ *  Ispisuje uputstva za igru u gornjem levom uglu.
+*/
+void printInstructions(float windowWidth, float windowHeight) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    glLoadIdentity();
+    gluOrtho2D(0, windowWidth, windowHeight, 0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    
+    glLoadIdentity();
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+    glColor3f(0,0,0.3);
+
+    glRasterPos2f(windowWidth/20,windowHeight/15);
+    char* c = "Kontrole:";
+
+    int i;
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c[i]);
+
+    glRasterPos2f(windowWidth/20,1.5*windowHeight/15);
+    c = "Igrac 1: <-V->";
+
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    glRasterPos2f(windowWidth/20,2*windowHeight/15);
+    c = "Igrac 2: JKL";
+
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    glRasterPos2f(windowWidth/20,3*windowHeight/15);
+    c = "Kamera: WASD";
+
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    glRasterPos2f(windowWidth/20,3.5*windowHeight/15);
+    c = "Reset: R";
+
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    glRasterPos2f(windowWidth/20,4*windowHeight/15);
+    c = "(sakrij: V)";
+
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
+}
