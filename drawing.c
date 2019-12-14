@@ -539,3 +539,45 @@ void printNewGamePrompt(float windowWidth, float windowHeight) {
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
 }
+
+/**
+ *  Iscrtava prompt za izbor tezine igre u 2. rezimu
+*/
+void printDifficultyPrompt(float windowWidth, float windowHeight) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+
+    glLoadIdentity();
+    gluOrtho2D(0, windowWidth, windowHeight, 0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    
+    glLoadIdentity();
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+
+    char* c = "IZABERITE TEZINU IGRE";
+    glColor3f(0,0,0.7);
+    glRasterPos2f(2.12*windowWidth/5,2*windowHeight/15);
+
+    int i;
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c[i]);
+
+    glColor3f(0,0,0.5);
+    c = "(1) lako";
+    glRasterPos2f(2.4*windowWidth/5,2.5*windowHeight/15);
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    c = "(2) srednje";
+    glRasterPos2f(2.4*windowWidth/5,2.8*windowHeight/15);
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    c = "(3) tesko";
+    glRasterPos2f(2.4*windowWidth/5,3.1*windowHeight/15);
+    for(i=0; c[i]; i++)
+        glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+}

@@ -29,6 +29,8 @@ static int mode = 0;
 static int prevMode = 0;
 // 1,2 ili 3 za nereseno, uslovna promenljiva za ispis ishoda
 static int winner = 0;
+// Bira se tezina igre i po tome se odredjuje dubina za minimax
+static int depth = 0;
 // Trenutni id igraca
 static char player = '1';
 
@@ -187,6 +189,10 @@ static void onDisplay(void) {
     if(!mode && !winner)
         printNewGamePrompt(windowWidth, windowHeight);
 
+    // Ispisuje se prompt za izbor tezine igre u 2. rezimu (tasteri 1,2,3)
+    if(mode == 2 && !depth)
+        printDifficultyPrompt(windowWidth, windowHeight);
+
     // Ispisuje se uputstva ukoliko je aktiviran prikaz.
     if(toggleInstructions)
         printInstructions(windowWidth, windowHeight);
@@ -214,24 +220,48 @@ static void onKeyboard(unsigned char key, int x, int y) {
 
         // Bira se rezim igre za dva igraca samo kada je ispisan prompt za izbor.
         case '1':
-            if(mode)
+            if(mode == 1 || (mode == 2 && depth))
                 break;
-            mode = 1;
+            
+            if(!mode)
+                mode = 1; // kada se bira rezim igre, inace tezina
+            else
+                depth = 3; // tezina - lako
+            
             // Pokrece se igra i omogucava ponovno resetovanje
             alreadyReset = 0;
+            
             glutPostRedisplay();
+            
             break;
 
         // Slicno za rezim protiv racunara.
         case '2':
-            if(mode)
+            if(mode == 1 || (mode == 2 && depth))
                 break;
-            mode = 2;
-            // Pokrece se igra i omogucava ponovno resetovanje
+
+            if(!mode)
+                mode = 2;
+            else
+                depth = 5;  // tezina - srednje
+            
             alreadyReset = 0;
             glutPostRedisplay();
+            
             break;
 
+        // Izbor tezine 3 ako je prethodno izabran 2. rezim
+        case '3':
+            if(mode != 2 || depth)
+                break;
+
+            depth = 8;  // tezina - tesko
+            
+            alreadyReset = 0;
+            glutPostRedisplay();
+            
+            break;
+            
         // Resetuje se igra.
         case 'r':
         case 'R':
@@ -246,8 +276,10 @@ static void onKeyboard(unsigned char key, int x, int y) {
             animation = 0;
             // Prekida se treperenje zetona posle pobede.
             animation2 = 0;
+            
             mode = 0;
             winner = 0;
+            depth = 0;
             
             // Resetuju se vektor i trenutni polozaj slobodnog zetona
             vY = -slotStep/2;
@@ -374,7 +406,7 @@ static void onArrowKey(int key, int x, int y) {
 
         // Odigrava se potez ako je validan i ako je igra u toku.
         case GLUT_KEY_DOWN:
-            if(!mode || player != '1')
+            if(!mode || player != '1' || (mode == 2 && !depth))
                 break;
             if(!animation && validMove(&board, currCol)) {
                 
@@ -495,7 +527,7 @@ static void onTimer(int value) {
                 "odmah" izvrsava, osim u eventualno 2,3 poteza na pocetku igre
                 kada laguje za ~1s
             */
-            int botCol = botMakeMove(state, 8);
+            int botCol = botMakeMove(state, depth);
             
             // Racunar zeton se iscrtava nad izabranom kolonom.
             currToken.x += (botCol - currCol)*slotStep;
