@@ -21,6 +21,7 @@ state* boardToState(gameBoard* board);
 void freeState(state* state);
 
 int evaluate(state* state);
+void getWinningCombo(gameBoard* board, float* tokens);
 minMax minimax(state* startState, int depth, char player, int alpha, int beta);
 
 int botMakeMove(state* state, int depth);

@@ -377,6 +377,110 @@ int evaluate(state* state) {
     
     return score;
 }
+/**
+ *  Poziva se u slucaju necije pobede.
+ * 
+ *  U tabli se pretrazuje dobitna kombinacija. Koordinate centra tih zetona se upisuju
+ *  u niz tokens pa se iz table "brisu" (postavljanjem promenljive player na '0') da bi
+ *  se posebno iscrtavali zbog animacije.
+*/
+void getWinningCombo(gameBoard* board, float* tokens) {
+    state* st = boardToState(board);
+    /*
+        Proverava se da li ima 4 u nizu po redovima.
+        Ako u i-tom redu u koloni j=3 nema zetona, nema sigurno pobednika u tom redu,
+        pa ni u gornjim redovima.
+    */
+    int i,j;
+    for(i=5; i>=0 && st->st[i][3] != '0'; i--)
+        for(j=3; j<7; j++)
+            if(st->st[i][j] == st->st[i][j-1] && st->st[i][j-1] == st->st[i][j-2] && 
+                st->st[i][j-2] == st->st[i][j-3]) {
+                
+                tokens[0] = board->tokens[i][j].x; tokens[1] = board->tokens[i][j].y;
+                tokens[2] = board->tokens[i][j-1].x; tokens[3] = board->tokens[i][j-1].y;
+                tokens[4] = board->tokens[i][j-2].x; tokens[5] = board->tokens[i][j-2].y;
+                tokens[6] = board->tokens[i][j-3].x; tokens[7] = board->tokens[i][j-3].y;
+
+                board->tokens[i][j].player = '0';
+                board->tokens[i][j-1].player = '0';
+                board->tokens[i][j-2].player = '0';
+                board->tokens[i][j-3].player = '0';
+
+                freeState(st);
+                
+                return;
+            }
+    /*
+        Proverava se po kolonama.
+        Ako na polju (i,j) nema zetona, tu nema 4 u nizu, sece se i pretraga za vise redove
+    */
+    for(j=0; j<7; j++)
+        for(i=2; i>=0 && st->st[i][j] != '0'; i--)
+            if(st->st[i][j] == st->st[i+1][j] && st->st[i+1][j] == st->st[i+2][j] && 
+                st->st[i+2][j] == st->st[i+3][j]) {
+                
+                tokens[0] = board->tokens[i][j].x; tokens[1] = board->tokens[i][j].y;
+                tokens[2] = board->tokens[i+1][j].x; tokens[3] = board->tokens[i+1][j].y;
+                tokens[4] = board->tokens[i+2][j].x; tokens[5] = board->tokens[i+2][j].y;
+                tokens[6] = board->tokens[i+3][j].x; tokens[7] = board->tokens[i+3][j].y;
+
+                board->tokens[i][j].player = '0';
+                board->tokens[i+1][j].player = '0';
+                board->tokens[i+2][j].player = '0';
+                board->tokens[i+3][j].player = '0';
+
+                freeState(st);
+                
+                return;
+            }
+
+    // Slicno za dijagonale oblika '/'
+    for(j=3; j<7; j++)
+        for(i=2; i>=0 && st->st[i][j] != '0'; i--)
+            if(st->st[i][j] == st->st[i+1][j-1] && st->st[i+1][j-1] == st->st[i+2][j-2] &&
+                st->st[i+2][j-2] == st->st[i+3][j-3]) {
+                
+                tokens[0] = board->tokens[i][j].x; tokens[1] = board->tokens[i][j].y;
+                tokens[2] = board->tokens[i+1][j-1].x; tokens[3] = board->tokens[i+1][j-1].y;
+                tokens[4] = board->tokens[i+2][j-2].x; tokens[5] = board->tokens[i+2][j-2].y;
+                tokens[6] = board->tokens[i+3][j-3].x; tokens[7] = board->tokens[i+3][j-3].y;
+                
+                board->tokens[i][j].player = '0';
+                board->tokens[i+1][j-1].player = '0';
+                board->tokens[i+2][j-2].player = '0';
+                board->tokens[i+3][j-3].player = '0';
+
+                freeState(st);
+                
+                return;
+            }
+
+    // Slicno za dijagonale oblika '\'
+    for(j=3; j>=0; j--)
+        for(i=2; i>=0 && st->st[i][j] != '0'; i--)
+            if(st->st[i][j] == st->st[i+1][j+1] && st->st[i+1][j+1] == st->st[i+2][j+2] &&
+                st->st[i+2][j+2] == st->st[i+3][j+3]) {
+                
+                tokens[0] = board->tokens[i][j].x; tokens[1] = board->tokens[i][j].y;
+                tokens[2] = board->tokens[i+1][j+1].x; tokens[3] = board->tokens[i+1][j+1].y;
+                tokens[4] = board->tokens[i+2][j+2].x; tokens[5] = board->tokens[i+2][j+2].y;
+                tokens[6] = board->tokens[i+3][j+3].x; tokens[7] = board->tokens[i+3][j+3].y;
+
+                board->tokens[i][j].player = '0';
+                board->tokens[i+1][j+1].player = '0';
+                board->tokens[i+2][j+2].player = '0';
+                board->tokens[i+3][j+3].player = '0';
+
+                freeState(st);
+                
+                return;
+            }
+
+    freeState(st);
+                
+    return;
+}
 
 /**
  *  Implementira minimax algoritam sa alfa-beta odsecanjem.

@@ -34,35 +34,35 @@ void drawBoard(float x, float y, float z, float w, float radius) {
     
     // podesavanja za materijal
     // zadnja ploca ce biti tamnija
-    GLfloat ambient_coeffs[] = {0, 0, 0, 1 };
-    GLfloat diffuse_coeffs[] = { 0, 0, 0.2, 1 };
-    GLfloat specular_coeffs[] = { 0, 0, 0, 1 };
+    GLfloat ambientCoeffs[] = {0, 0, 0, 1 };
+    GLfloat diffuseCoeffs[] = { 0, 0, 0.2, 1 };
+    GLfloat specularCoeffs[] = { 0, 0, 0, 1 };
     GLfloat shininess = 0;
 
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
     drawTable(x, y, z-w, radius);
 
     // ostali delovi su svetliji
     // GLfloat diffuse_coeffs2[] = { 0.1, 0.1, 0.4, 1 };
-    diffuse_coeffs[2] = 0.4;
+    diffuseCoeffs[2] = 0.4;
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
     
     // crta se prednja ploca
     drawTable(x, y, z, radius);
 
-    diffuse_coeffs[2] = 0.3;
+    diffuseCoeffs[2] = 0.3;
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
     // Spajanje ploca unutrasnjim pregradama i spoljasnjim ivicama
@@ -247,17 +247,17 @@ void drawToken(token* t , float radius) {
 
     // podesavanja za materijal
     // prednji i zadnji krug
-    GLfloat ambient_coeffs[] = {0, 0, 0, 1 };
-    GLfloat diffuse_coeffs[] = { 0.5, 0.1, 0.1, 1 }; // crvena za player = '1'
+    GLfloat ambientCoeffs[] = {0, 0, 0, 1 };
+    GLfloat diffuseCoeffs[] = { 0.5, 0.1, 0.1, 1 }; // crvena za player = '1'
     if(t->player == '2')
-        diffuse_coeffs[1] = 0.5; // zuta za player = '2'
+        diffuseCoeffs[1] = 0.5; // zuta za player = '2'
 
-    GLfloat specular_coeffs[] = { 0, 0, 0, 1 };
+    GLfloat specularCoeffs[] = { 0, 0, 0, 1 };
     GLfloat shininess = 0;
 
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
     // ugao za iteraciju
@@ -291,9 +291,9 @@ void drawToken(token* t , float radius) {
     if(t->player == '2')
        diffuse_coeffs2[1] = 0.3; // zuta za player = '2'
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs2);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
     
     // crta se ivica zetona
@@ -309,6 +309,66 @@ void drawToken(token* t , float radius) {
                 tmpZ += w;
         }
     glEnd();
+}
+
+/**
+ *  Poziva se u slucaju necije pobede.
+ * 
+ *  Varijacija koda iz funkcije drawToken(), s tim da odjednom crta 4 zetona
+ *  cijih su koordinate u nizu tokens i tokom animacije treperenja se menjaju
+ *  diffuseCoeffs.
+*/
+void drawWinningCombo(float* tokens, float radius, GLfloat* diffuseCoeffs) {
+    GLfloat ambientCoeffs[] = {0, 0, 0, 1 };
+    GLfloat specularCoeffs[] = { 0, 0, 0, 1 };
+    GLfloat shininess = 0;
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
+    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    
+    // ugao za iteraciju
+    float angle = M_PI/12;
+    int i;
+    for(i=0; i<8; i+=2) {
+        const float x = tokens[i]; // x-koordinata centra prednjeg i zadnjeg kruga
+        const float y = tokens[i+1]; // y-koordinata -||-
+        const float z = -0.01; // z-koordinata prednjeg kruga
+        const float w =  0.03;  // debljina zetona 
+
+        float tmpAngle;
+
+        // prednji krug
+        glBegin(GL_POLYGON);
+            for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle) {
+                glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
+            glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, z);
+            }
+        glEnd();
+    
+        // zadnji krug
+        glBegin(GL_POLYGON);
+            for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle) {
+                glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
+                glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, z - w);
+            }
+        glEnd();
+    
+        // crta se ivica zetona
+        float tmpZ = z;
+        int i;
+        glBegin(GL_TRIANGLE_STRIP);
+            for(i=0; i<26; i++,tmpAngle += angle) {
+                glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
+                glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, tmpZ);
+                if(tmpZ == z)
+                    tmpZ -= w;
+                else
+                    tmpZ += w;
+            }
+        glEnd();
+    }
 }
 
 /**

@@ -15,6 +15,7 @@ void drawCorners(float x, float y, float z, float radius);
 void drawBoard(float x, float y, float z, float w, float radius);
 
 void drawToken(token* t, float radius);
+void drawWinningCombo(float* tokens, float radius, GLfloat* diffuseCoeffs);
 
 void setLightingParams();
 

@@ -9,7 +9,8 @@
 #include "structlib.h"
 
 #define TIMER_ID 1
-#define TIMER_INTERVAL 10 
+#define TIMER_ID2 2
+#define TIMER_INTERVAL 10
 
 /**
  *  Uputstva za igru:
@@ -38,6 +39,15 @@ static int toggleInstructions = 1;
 
 // Promenljiva za animaciju pada/odskoka zetona
 static int animation = 0;
+
+// Promenljiva za animaciju treperenja dobitne kombinacije zetona
+static int animation2 = 0;
+// Sadrzace koordinate centra 4 dobitna zetona [x1,y1,x2,y2,x3,y3,x4,y4]
+float* tokenCoords;
+// Animacija se vrsi menjanjem diffuznih koeficijenata materijala zetona.
+GLfloat* winnerDiffuseCoeffs;
+// U svakom pozivu onTimer2() cini sabirak/umanjilac odgovarajucih koeficijenata.
+float coeffStep = 0.01;
 
 // Poluprecnik kruga svake celije
 static const float radius = 0.1;
@@ -74,6 +84,7 @@ static void onReshape(int width, int height);
 static void onKeyboard(unsigned char key, int x, int y);
 static void onArrowKey(int key, int x, int y);
 static void onTimer(int value);
+static void onTimer2(int value);
 void initialize();
 
 int main(int argc, char** argv) {
@@ -113,6 +124,20 @@ void initialize() {
     currToken.x = 3 * slotStep;
     currToken.y = slotStep;
     currToken.player = player;
+
+    tokenCoords = malloc(8*sizeof(float));
+    if(tokenCoords == NULL) {
+        fprintf(stderr, "initialize() malloc fail.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    winnerDiffuseCoeffs = malloc(4*sizeof(GLfloat));
+    if(winnerDiffuseCoeffs == NULL) {
+        fprintf(stderr, "initialize() malloc fail.\n");
+        exit(EXIT_FAILURE);
+    }
+    winnerDiffuseCoeffs[0] = winnerDiffuseCoeffs[1] = winnerDiffuseCoeffs[2] = 0.1;
+    winnerDiffuseCoeffs[3] = 1;
 }
 
 static void onReshape(int width, int height) {
@@ -154,6 +179,10 @@ static void onDisplay(void) {
             if(board.tokens[i][j].player != '0')
                 drawToken(&board.tokens[i][j], radius);
 
+    // Ako postoji pobednik, iscrtavaju se dobitni zetoni
+    if(winner == 1 || winner == 2)
+        drawWinningCombo(tokenCoords, radius, winnerDiffuseCoeffs);
+
     // Ispisuje se prompt za izbor rezima igre (tasteri 1 ili 2)
     if(!mode && !winner)
         printNewGamePrompt(windowWidth, windowHeight);
@@ -177,6 +206,9 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 27:
             // Zavrsava se program.
             freeGameBoard(&board);
+            free(tokenCoords);
+            free(winnerDiffuseCoeffs);
+
             exit(EXIT_SUCCESS);
             break;
 
@@ -212,6 +244,8 @@ static void onKeyboard(unsigned char key, int x, int y) {
 
             // Prekida se pad zetona ako se igra tada resetuje.
             animation = 0;
+            // Prekida se treperenje zetona posle pobede.
+            animation2 = 0;
             mode = 0;
             winner = 0;
             
@@ -387,7 +421,7 @@ static void onTimer(int value) {
     if(animation == 2 && vY <= 0.00001) {
         
         animation = 3;
-        vY = -vY;
+        vY *= -1;
     }
     // Obuhvata slucaj kraja trece faze i slucaja kada zeton ide u najvisi red
     if(animation != 2 && 
@@ -407,6 +441,16 @@ static void onTimer(int value) {
             prevMode = mode;
             mode = 0;
             winner = 2;
+            
+            // Traze se 4 dobitna zetona, premestaju se iz glavne table da bi se posebno crtali
+            getWinningCombo(&board, tokenCoords);
+            // Pocetni difuzni koeficijenti u animaciji ako su zetoni zutii.
+            winnerDiffuseCoeffs[0] = 0.5;
+            winnerDiffuseCoeffs[1] = 0.5;
+
+            glutTimerFunc(TIMER_INTERVAL, onTimer2, TIMER_ID2);
+            animation2 = 1;
+            
             glutPostRedisplay();
         } else {
             int i, topSum = 7;
@@ -431,6 +475,16 @@ static void onTimer(int value) {
             prevMode = mode;
             mode = 0;
             winner = 1;
+
+            // Traze se 4 dobitna zetona, premestaju se iz glavne table da bi se posebno crtali
+            getWinningCombo(&board, tokenCoords);
+            // Pocetni difuzni koeficijenti u animaciji ako su zetoni crveni.
+            winnerDiffuseCoeffs[0] = 0.5;
+            winnerDiffuseCoeffs[1] = 0.1;
+            
+            glutTimerFunc(TIMER_INTERVAL, onTimer2, TIMER_ID2);
+            animation2 = 1;
+
             glutPostRedisplay();
         }
         
@@ -472,5 +526,28 @@ static void onTimer(int value) {
 
     if (animation) {
         glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
+    }
+}
+
+/**
+ *  Pokrece se u slucaju necije pobede, dobitna kombinacija treperi.
+*/
+static void onTimer2(int value) {
+    if(value != TIMER_ID2)
+        return;
+
+    // Menja se znak na granicama.
+    if(winnerDiffuseCoeffs[0] < 0.5 || winnerDiffuseCoeffs[0] > 1)
+        coeffStep *= -1;
+    
+    // Menjaju se difuzni koeficijenti materijala zetona.
+    winnerDiffuseCoeffs[0] += coeffStep;
+    if(winner == 2)
+        winnerDiffuseCoeffs[1] += coeffStep;
+
+    glutPostRedisplay();
+
+    if (animation2) {
+        glutTimerFunc(TIMER_INTERVAL, onTimer2, TIMER_ID2);
     }
 }
