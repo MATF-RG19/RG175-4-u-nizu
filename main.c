@@ -28,12 +28,14 @@
 */
 
 // 2 igraca (1) ili igrac vs. bot (2)
+// U opstem slucaju govori da li je igra u toku
 static int mode = 0;
 
-// 1 ako je igra u toku, 0 inace
-static int game = 0;
 // 1 ili 2, uslovna promenljiva za ispis pobednika
 static int winner = 0;
+
+// Uslovna promenljiva koja stiti tok programa od odredjenih bagova
+static int alreadyReset = 0;
 
 static int animation = 0;
 
@@ -159,7 +161,7 @@ static void onDisplay(void) {
                 drawToken(&board.tokens[i][j], radius);
 
     // Ispisuje se prompt za izbor rezima igre (tasteri 1 ili 2)
-    if(!mode)
+    if(!mode && !winner)
         printNewGamePrompt(windowWidth, windowHeight);
 
     // Ispisuje se uputstva ukoliko je aktiviran prikaz.
@@ -189,7 +191,8 @@ static void onKeyboard(unsigned char key, int x, int y) {
             if(mode)
                 break;
             mode = 1;
-            game = 1;
+            // Pokrece se igra i omogucava ponovno resetovanje
+            alreadyReset = 0;
             glutPostRedisplay();
             break;
 
@@ -198,21 +201,31 @@ static void onKeyboard(unsigned char key, int x, int y) {
             if(mode)
                 break;
             mode = 2;
-            game = 1;
+            // Pokrece se igra i omogucava ponovno resetovanje
+            alreadyReset = 0;
             glutPostRedisplay();
             break;
 
-        // Resetuje se tabla.
+        // Resetuje se igra.
         case 'r':
         case 'R':
+            // Izbegava se bespotrebno ponovno resetovanje
+            if(alreadyReset)
+               break;
+            alreadyReset = 1;
             freeGameBoard(&board);
             board = gameBoardInit(0, 0, slotStep);
+
+            // Prekida se pad zetona ako se igra tada resetuje.
             animation = 0;
             mode = 0;
-            game = 0;
             winner = 0;
+            
+            // Resetuju se vektor i trenutni polozaj slobodnog zetona
+            vY = -slotStep/2;
             currToken.x = 3*slotStep;
             currToken.y = slotStep;
+            currCol = 3;
             currToken.player = player = '1';
 
             glutPostRedisplay();
@@ -292,7 +305,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
         // 2.igrac - odigrava se potez ako je validan.
         case 'k':
         case 'K':
-            if(!game || mode != 1 || player != '2')
+            if(mode != 1 || player != '2')
                 break;
             if(!animation && validMove(&board, currCol)) {
                 
@@ -331,9 +344,9 @@ static void onArrowKey(int key, int x, int y) {
             }
             break;
 
-        // Odigrava se potez ako je validan.
+        // Odigrava se potez ako je validan i ako je igra u toku.
         case GLUT_KEY_DOWN:
-            if(!game || player != '1')
+            if(!mode || player != '1')
                 break;
             if(!animation && validMove(&board, currCol)) {
                 
@@ -361,7 +374,7 @@ static void onArrowKey(int key, int x, int y) {
  *  u svakom pozivu raste dok zeton ne dodje na svoje mesto.
 */
 static void onTimer(int value) {
-    if(!animation || !game || value != TIMER_ID)
+    if(!animation || !mode || value != TIMER_ID)
         return;
     // Uslov za kraj prve faze osim za red table na vrhu
     if(animation == 1 && board.topCol[currCol] > 0 &&
@@ -396,7 +409,8 @@ static void onTimer(int value) {
         int score = evaluate(state);
 
         if(score == -1000) {
-            game = 0;
+            // Pobedio je 2.igrac / racunar.
+            mode = 0;
             winner = 2;
             glutPostRedisplay();
         }
@@ -409,13 +423,13 @@ static void onTimer(int value) {
         glutPostRedisplay();
         
         if(score == 1000) {
-            game = 0;
+            mode = 0;
             winner = 1;
             glutPostRedisplay();
         }
         
         // Ako se igra protiv racunara, sada je na njega red.
-        if(game && mode == 2 && player == '2') {
+        if(mode == 2 && player == '2') {
             /* 
                 Depth = 8 je najveca dubina na kojoj se botMakeMove()
                 "odmah" izvrsava, osim u eventualno 2,3 poteza na pocetku igre
