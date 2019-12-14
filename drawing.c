@@ -35,7 +35,7 @@ void drawBoard(float x, float y, float z, float w, float radius) {
     // podesavanja za materijal
     // zadnja ploca ce biti tamnija
     GLfloat ambient_coeffs[] = {0, 0, 0, 1 };
-    GLfloat diffuse_coeffs[] = { 0, 0, 0.1, 1 };
+    GLfloat diffuse_coeffs[] = { 0, 0, 0.2, 1 };
     GLfloat specular_coeffs[] = { 0, 0, 0, 1 };
     GLfloat shininess = 0;
 
@@ -47,15 +47,23 @@ void drawBoard(float x, float y, float z, float w, float radius) {
     drawTable(x, y, z-w, radius);
 
     // ostali delovi su svetliji
-    GLfloat diffuse_coeffs2[] = { 0.1, 0.1, 0.4, 1 };
+    // GLfloat diffuse_coeffs2[] = { 0.1, 0.1, 0.4, 1 };
+    diffuse_coeffs[2] = 0.4;
     
     glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs2);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
     glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
     
     // crta se prednja ploca
     drawTable(x, y, z, radius);
+
+    diffuse_coeffs[2] = 0.3;
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_coeffs);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specular_coeffs);
+    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
     // Spajanje ploca unutrasnjim pregradama i spoljasnjim ivicama
     float border = radius/4;
@@ -391,38 +399,44 @@ void printWinner(float windowWidth, float windowHeight, int winner, int mode) {
     glDisable(GL_LIGHT0);
 
     if(winner == 1)
-        glColor3f(0.5,0,0);
-    else
+        glColor3f(0.6,0,0);
+    else if(winner == 2)
         glColor3f(0.5,0.5,0);
+    else
+        glColor3f(0,0,0.5);
 
     char* c;
-    if(mode == 1) {
-        if(winner == 1)
-            c = "Pobednik: 1. IGRAC!";
-        else
-            c = "Pobednik: 2. IGRAC!";
+    if(winner != 3) {
+        if(mode == 1) {
+            if(winner == 1)
+                c = "Pobednik: 1. IGRAC!";
+            else
+                c = "Pobednik: 2. IGRAC!";
+        } else {
+            if(winner == 1)
+                c = "Pobednik: IGRAC!";
+            else
+                c = "Pobednik: RACUNAR!";
+        }
+        glRasterPos2f(2.1*windowWidth/5,2*windowHeight/15);
     } else {
-        if(winner == 1)
-            c = "Pobednik: IGRAC!";
-        else
-            c = "Pobednik: RACUNAR!";
+        c = "NERESENO!";
+        glRasterPos2f(2.31*windowWidth/5,2*windowHeight/15);
     }
-
-    glRasterPos2f(2.1*windowWidth/5,2.5*windowHeight/15);
 
     int i;
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c[i]);
 
-    glColor3f(0,0,0);
-
-    glRasterPos2f(2.34*windowWidth/5,3.1*windowHeight/15);
+    glColor3f(0,0.5,0);
+    glRasterPos2f(2.31*windowWidth/5,2.6*windowHeight/15);
     c = "nova igra - R";
 
     for(i=0; c[i]; i++)
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, c[i]);
 
-    glRasterPos2f(2.37*windowWidth/5,3.4*windowHeight/15);
+    glColor3f(0,0,0);
+    glRasterPos2f(2.37*windowWidth/5,2.9*windowHeight/15);
     c = "izlaz - ESC";
 
     for(i=0; c[i]; i++)
@@ -448,7 +462,7 @@ void printNewGamePrompt(float windowWidth, float windowHeight) {
 
     char* c = "IZABERITE REZIM IGRE";
     glColor3f(0,0,0.7);
-    glRasterPos2f(2.12*windowWidth/5,2.5*windowHeight/15);
+    glRasterPos2f(2.12*windowWidth/5,2*windowHeight/15);
 
     int i;
     for(i=0; c[i]; i++)
@@ -456,12 +470,12 @@ void printNewGamePrompt(float windowWidth, float windowHeight) {
 
     glColor3f(0,0,0.5);
     c = "(1) Igrac 1 - Igrac 2";
-    glRasterPos2f(2.15*windowWidth/5,3*windowHeight/15);
+    glRasterPos2f(2.15*windowWidth/5,2.5*windowHeight/15);
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
 
     c = "(2) Igrac - Racunar ";
-    glRasterPos2f(2.2*windowWidth/5,3.3*windowHeight/15);
+    glRasterPos2f(2.2*windowWidth/5,2.8*windowHeight/15);
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
 }

@@ -14,60 +14,52 @@
 /**
  *  Uputstva za igru:
  *  
- *  (TODO: na "ekran" dodati uputstva za igru i potrebna obavestenja)
- *  
  *  levo,desno,dole - kontrole za 1. igraca
  *        JKL       - kontrole za 2. igraca      
  *         R        - resetuje se tabla
  *        ESC       - izlaz iz programa
  *        WASD      - pomeranje kamere
- * 
- *  Napomena: 
- *      Trenutno se mod igre eksplicitno podesava u funkciji initialize() (mode=1 ili mode=2),
- *  prvi rezim za dva igraca i drugi za igraca protiv racunara.
 */
 
 // 2 igraca (1) ili igrac vs. bot (2)
 // U opstem slucaju govori da li je igra u toku
 static int mode = 0;
-
-// 1 ili 2, uslovna promenljiva za ispis pobednika
+// 1,2 ili 3 za nereseno, uslovna promenljiva za ispis ishoda
 static int winner = 0;
+// Trenutni id igraca
+static char player = '1';
 
 // Uslovna promenljiva koja stiti tok programa od odredjenih bagova
 static int alreadyReset = 0;
-
-static int animation = 0;
-
 // Uslovna promenljiva za prikazivanje uputstava
 static int toggleInstructions = 1;
 
-// poluprecnik kruga svake celije
-static const float radius = 0.1;
+// Promenljiva za animaciju pada/odskoka zetona
+static int animation = 0;
 
-// horizontalno rastojanje izmedju centara krugova dve susedne kolone
+// Poluprecnik kruga svake celije
+static const float radius = 0.1;
+// Horizontalno rastojanje izmedju centara krugova dve susedne kolone
 static float slotStep;
-// vektor kretanja za pad zetona
+// Vektor kretanja za pad zetona
 static float vY;
 
-// zeton kojim se bira potez
+// Zeton kojim se bira potez
 token currToken;
-// kolona nad kojom je trenutno currToken, pomera sa tasterima <- i ->
+// Kolona nad kojom je trenutno currToken, pomera sa tasterima <- i ->
 static int currCol = 3;
 
-// pokazivac na trenutnu tablu igre
+// Trenutnu tablu igre
 gameBoard board;
-// trenutni id igraca
-static char player = '1';
 
-// sferne koordinate kamere
+// Sferne koordinate kamere
 static float r = 2;
 static float theta = 0;
-static float phi = M_PI/2;
-// korak pomeranja kamere
+static float phi = M_PI/3;
+// Korak pomeranja kamere
 static const float angleStep = M_PI/24;
 
-// koordinate kamere u xyz-prostoru
+// Koordinate kamere u xyz-prostoru
 static float eyeX;
 static float eyeY;
 static float eyeZ;
@@ -413,6 +405,16 @@ static void onTimer(int value) {
             mode = 0;
             winner = 2;
             glutPostRedisplay();
+        } else {
+            int i, topSum = 7;
+            for(i=0; i<7; i++)
+                topSum += state->top[i];
+            // Ako su sve kolone pune, top[i] je svuda -7 a topSum = 0
+            if(!topSum) {
+                mode = 0;
+                winner = 3;
+                glutPostRedisplay();
+            }
         }
         
         // Id igraca na potezu se alternira.
