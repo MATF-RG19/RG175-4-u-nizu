@@ -24,6 +24,8 @@
 // 2 igraca (1) ili igrac vs. bot (2)
 // U opstem slucaju govori da li je igra u toku
 static int mode = 0;
+// Rezim zavrsene igre, koristi je f-ja za ispis ishoda
+static int prevMode = 0;
 // 1,2 ili 3 za nereseno, uslovna promenljiva za ispis ishoda
 static int winner = 0;
 // Trenutni id igraca
@@ -162,7 +164,7 @@ static void onDisplay(void) {
 	
     // Ispisuje se pobednik u slucaju necije pobede i prompt za novu igru/izlaz.
     if(winner)
-        printWinner(windowWidth, windowHeight, winner, mode);
+        printWinner(windowWidth, windowHeight, winner, prevMode);
 
     glutSwapBuffers();
 }
@@ -402,6 +404,7 @@ static void onTimer(int value) {
 
         if(score == -1000) {
             // Pobedio je 2.igrac / racunar.
+            prevMode = mode;
             mode = 0;
             winner = 2;
             glutPostRedisplay();
@@ -425,6 +428,7 @@ static void onTimer(int value) {
         glutPostRedisplay();
         
         if(score == 1000) {
+            prevMode = mode;
             mode = 0;
             winner = 1;
             glutPostRedisplay();
