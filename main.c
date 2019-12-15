@@ -12,6 +12,8 @@
 #define TIMER_ID2 2
 #define TIMER_INTERVAL 10
 
+#define VY0 (-0.01)
+
 /**
  *  Uputstva za igru:
  *  
@@ -56,7 +58,7 @@ static const float radius = 0.1;
 // Horizontalno rastojanje izmedju centara krugova dve susedne kolone
 static float slotStep;
 // Vektor kretanja za pad zetona
-static float vY;
+static float vY = VY0;
 
 // Zeton kojim se bira potez
 token currToken;
@@ -115,7 +117,6 @@ void initialize() {
     glEnable(GL_DEPTH_TEST);
 
     slotStep  = 2*radius + radius/4;
-    vY = -slotStep/2;
 
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
@@ -282,7 +283,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
             depth = 0;
             
             // Resetuju se vektor i trenutni polozaj slobodnog zetona
-            vY = -slotStep/2;
+            vY = VY0;
             currToken.x = 3*slotStep;
             currToken.y = slotStep;
             currCol = 3;
@@ -441,7 +442,7 @@ static void onTimer(int value) {
         currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
             
         animation = 2;
-        vY = -vY/3;
+        vY /= -3.5;
         currToken.y += vY;
         
         glutPostRedisplay();
@@ -450,7 +451,7 @@ static void onTimer(int value) {
         return;
     }
     // Uslov za kraj druge faze
-    if(animation == 2 && vY <= 0.00001) {
+    if(animation == 2 && vY <= 0.001) {
         
         animation = 3;
         vY *= -1;
@@ -460,7 +461,7 @@ static void onTimer(int value) {
         currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
         
         animation = 0;
-        vY = -slotStep/2;
+        vY = VY0;
         
         // Kada padne zeton azurira se tabla.
         makeMove(&board, currCol, player);
@@ -549,11 +550,15 @@ static void onTimer(int value) {
         return;
     }
     if(animation == 2)
-        vY /= 1.5;
-    else if(animation == 3 && vY > -slotStep/16)
-        vY *= 1.5;
+        vY /= 2;
+    else
+        vY *= 1.2;
     
     currToken.y += vY;
+    // Osigurava se da zeton ne padne nize od svog mesta.
+    if(currToken.y < board.tokens[board.topCol[currCol]][currCol].y)
+        currToken.y = board.tokens[board.topCol[currCol]][currCol].y;
+    
     glutPostRedisplay();
 
     if (animation) {
