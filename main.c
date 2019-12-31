@@ -121,7 +121,10 @@ void initialize() {
     // Inicijalizuje se tabla
     board = gameBoardInit(0, 0, slotStep);
 
-    getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+    // Inicijalizuju se pocetne koordinate kamere
+    eyeX = r * sin(theta) * sin(phi);
+    eyeY = r * cos(phi); 
+    eyeZ = r * cos(theta) * sin(phi);
 
     // Podesavaju se pocetne koordinate zetona kojim biramo potez
     currToken.x = 3 * slotStep;
@@ -186,15 +189,27 @@ static void onDisplay(void) {
     if(winner == 1 || winner == 2)
         drawWinningCombo(tokenCoords, radius, winnerDiffuseCoeffs);
 
-    // Ispisuje se prompt za izbor rezima igre (tasteri 1 ili 2)
+    /*
+        Posto se za svaki od sledecih promptova treba koristiti ortogonalna
+        projekcija, a u toku rada programa se 0 ili vise njih moze prikazivati
+        u isto vreme, svaka od funkcija za postavlja ortogonalnu projekciju.
+    */
+
+    /* 
+        Ispisuje se prompt za izbor rezima igre (tasteri 1 ili 2)
+        po pokretanju programa ili posle resetovanja.
+    */
     if(!mode && !winner)
         printNewGamePrompt(windowWidth, windowHeight);
 
-    // Ispisuje se prompt za izbor tezine igre u 2. rezimu (tasteri 1,2,3)
+    /* 
+        Ispisuje se prompt za izbor tezine igre u 2. rezimu (tasteri 1,2,3)
+        ako se on izabere.
+    */
     if(mode == 2 && !depth)
         printDifficultyPrompt(windowWidth, windowHeight);
 
-    // Ispisuje se uputstva ukoliko je aktiviran prikaz.
+    // Ispisuju se uputstva ukoliko je aktiviran prikaz.
     if(toggleInstructions)
         printInstructions(windowWidth, windowHeight);
 	
@@ -211,19 +226,24 @@ static void onKeyboard(unsigned char key, int x, int y) {
 
     switch (key) {
         case 27:
-            // Zavrsava se program.
+            // Oslobadja se memorija i zavrsava se program.
             freeGameBoard(&board);
             free(tokenCoords);
             free(winnerDiffuseCoeffs);
 
             exit(EXIT_SUCCESS);
-            break;
 
         // Bira se rezim igre za dva igraca samo kada je ispisan prompt za izbor.
         case '1':
+            /* 
+                Izlaz ako je izabran 1. rezim
+                ili ako su izabrani i 2. rezim i tezina
+            */
             if(mode == 1 || (mode == 2 && depth))
                 break;
             
+            // Ovde ili nije izabran rezim
+            // ili je izabran 2. rezim ali nije izabrana i tezina
             if(!mode)
                 mode = 1; // kada se bira rezim igre, inace tezina
             else
@@ -242,7 +262,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
                 break;
 
             if(!mode)
-                mode = 2;
+                mode = 2; // bira se 2. rezim
             else
                 depth = 5;  // tezina - srednje
             
@@ -270,6 +290,8 @@ static void onKeyboard(unsigned char key, int x, int y) {
             if(alreadyReset)
                break;
             alreadyReset = 1;
+
+            // Resetuje se tabla.
             freeGameBoard(&board);
             board = gameBoardInit(0, 0, slotStep);
 
@@ -278,6 +300,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
             // Prekida se treperenje zetona posle pobede.
             animation2 = 0;
             
+            // Resetuju se uslovne promenljive.
             mode = 0;
             winner = 0;
             depth = 0;
@@ -300,12 +323,18 @@ static void onKeyboard(unsigned char key, int x, int y) {
             glutPostRedisplay();
             break;
 
-        // Pomera se kamera.
+        /*
+            Azuriraju se sfericke koordinate kamere,
+            konvertuju u Dekartov koord. sistem i osvezava prikaz.
+        */ 
         case 'a':
         case 'A':
             if(theta > -M_PI/3) {
                 theta -= angleStep;
-                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+                
+                eyeX = r * sin(theta) * sin(phi);
+                eyeZ = r * cos(theta) * sin(phi);
+                
                 glutPostRedisplay();
             }
             break;
@@ -314,7 +343,10 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'D':
             if(theta < M_PI/3) {
                 theta += angleStep;
-                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+
+                eyeX = r * sin(theta) * sin(phi);
+                eyeZ = r * cos(theta) * sin(phi);
+                
                 glutPostRedisplay();
             }
             break;
@@ -323,7 +355,11 @@ static void onKeyboard(unsigned char key, int x, int y) {
         case 'W':
             if(phi > M_PI/6) {
                 phi -= angleStep;
-                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+
+                eyeX = r * sin(theta) * sin(phi);
+                eyeY = r * cos(phi); 
+                eyeZ = r * cos(theta) * sin(phi);
+                
                 glutPostRedisplay();
             }
             break;
@@ -334,7 +370,11 @@ static void onKeyboard(unsigned char key, int x, int y) {
                 if (phi > M_PI/2) 
                     phi = M_PI/2;
                 phi += angleStep;
-                getCameraCoords(r, theta, phi, &eyeX, &eyeY, &eyeZ);
+
+                eyeX = r * sin(theta) * sin(phi);
+                eyeY = r * cos(phi); 
+                eyeZ = r * cos(theta) * sin(phi);
+                
                 glutPostRedisplay();
             }
             break;
@@ -363,7 +403,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
             }
             break;
 
-        // 2.igrac - odigrava se potez ako je validan.
+        // 2. igrac - odigrava se potez ako je validan.
         case 'k':
         case 'K':
             if(mode != 1 || player != '2')
@@ -423,14 +463,14 @@ static void onArrowKey(int key, int x, int y) {
 /**
  *  Animira pad zetona.
  * 
- *  U prvoj fazi (animation = 1) zeton prosto pada. U slucaju najviseg
- *  reda table to je i poslednja faza. 
+ *  U prvoj fazi (animation = 1) zeton je u slobodnom padu.
  * 
- *  Inace se pokrece druga faza (animation = 2) gde zeton blago odskace na gore.
+ *  Zeton se odbija od dna - pokrece druga faza (animation = 2) 
+ *  gde zeton blago odskace na gore.
  *  Pocetni vektor odskoka je u startu manjeg intenziteta i sada se u
- *  svakom pozivu dodatno deli ga konstantnim faktorom.
+ *  svakom pozivu dodatno deli konstantnim faktorom.
  * 
- *  Kraj druge faze je kada intenzitet stekne vrlo malu vrednost. Menja mu se smer
+ *  Kraj druge faze je kada intenzitet opane na vrlo malu vrednost. Menja mu se smer
  *  i pokrece treca faza (animation = 3) i analogno drugoj fazi, intenzitet sada
  *  u svakom pozivu raste dok zeton ne dodje na svoje mesto.
 */
@@ -466,30 +506,41 @@ static void onTimer(int value) {
         // Kada padne zeton azurira se tabla.
         makeMove(&board, currCol, player);
         
+        // Tabla se preslikava u matricu karaktera (oznake igraca), efikasnije
         state* state = boardToState(&board);
         int score = evaluate(state);
 
+        // Proverava se da li je pobedio 2.igrac / racunar
         if(score == -1000) {
             // Pobedio je 2.igrac / racunar.
+
+            /* 
+                Resetuje se uslovna promenljiva mode kako bi se blokirali
+                dalji potezi, ali se njena prethodna vrednost cuva u
+                promenljivoj prevMode posto je koristi f-ja za ispis pobednika
+                (za 1 - pobedio je 2. igrac, inace je pobedio racunar)
+            */
             prevMode = mode;
             mode = 0;
             winner = 2;
             
             // Traze se 4 dobitna zetona, premestaju se iz glavne table da bi se posebno crtali
             getWinningCombo(&board, tokenCoords);
-            // Pocetni difuzni koeficijenti u animaciji ako su zetoni zutii.
+            // Pocetni difuzni koeficijenti u animaciji ako su zetoni zuti.
             winnerDiffuseCoeffs[0] = 0.5;
             winnerDiffuseCoeffs[1] = 0.5;
 
+            // Pokrece se animacija treperenja zetona.
             glutTimerFunc(TIMER_INTERVAL, onTimer2, TIMER_ID2);
             animation2 = 1;
             
             glutPostRedisplay();
         } else {
+            // Tabla je puna - nereseno
             int i, topSum = 7;
             for(i=0; i<7; i++)
                 topSum += state->top[i];
-            // Ako su sve kolone pune, top[i] je svuda -7 a topSum = 0
+            // Ako su svih 7 kolone pune, top[i] je svuda -1 a topSum = 0
             if(!topSum) {
                 mode = 0;
                 winner = 3;
@@ -504,8 +555,14 @@ static void onTimer(int value) {
 
         glutPostRedisplay();
         
+        // Proverava se da li je pobedio (1.)igrac
         if(score == 1000) {
+            /* 
+                Slicno kao pri proveri score == -1000, samo sto je sada
+                vrednost prevMode logicki gledano nevazna.
+            */
             prevMode = mode;
+
             mode = 0;
             winner = 1;
 
@@ -515,6 +572,7 @@ static void onTimer(int value) {
             winnerDiffuseCoeffs[0] = 0.5;
             winnerDiffuseCoeffs[1] = 0.1;
             
+            // Pokrece se animacija treperenja zetona.
             glutTimerFunc(TIMER_INTERVAL, onTimer2, TIMER_ID2);
             animation2 = 1;
 
@@ -579,6 +637,8 @@ static void onTimer2(int value) {
     
     // Menjaju se difuzni koeficijenti materijala zetona.
     winnerDiffuseCoeffs[0] += coeffStep;
+
+    // Dodatno ako su zetoni zuti.
     if(winner == 2)
         winnerDiffuseCoeffs[1] += coeffStep;
 

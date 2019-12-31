@@ -372,26 +372,13 @@ void drawWinningCombo(float* tokens, float radius, GLfloat* diffuseCoeffs) {
 }
 
 /**
- *  Pretvara (r,theta,phi) koordinate kamere i smesta u promenljive x,y,z
- * 
- *  float r      - rastojanje od table
- *  float theta  - ugao izmedju x i z osa
- *  float z      - ugao izmedju z-ose i vektora odredjenim uz pomoc theta
- *  float* x,y,z - lokacije na kojima se smestaju nove koordinate
-*/
-void getCameraCoords(float r, float theta, float phi, float* x, float* y, float* z) {
-    *x = r * sin(theta) * sin(phi);
-    *y = r * cos(phi); 
-    *z = r * cos(theta) * sin(phi);
-}
-
-/**
- *  Ispisuje uputstva za igru u gornjem levom uglu.
+ *  Ispisuje uputstva igre.
 */
 void printInstructions(float windowWidth, float windowHeight) {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
 
+    // Ortogonalna projekcija
     glLoadIdentity();
     gluOrtho2D(0, windowWidth, windowHeight, 0);
     
@@ -439,15 +426,18 @@ void printInstructions(float windowWidth, float windowHeight) {
 
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
+
+    glPopMatrix();
 }
 
 /**
- *  Ispisuje pobednika i prompt za novu igru/izlaz
+ *  Ispisuje pobednika i prompt za novu igru/izlaz.
 */
 void printWinner(float windowWidth, float windowHeight, int winner, int mode) {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
 
+    // Ortogonalna projekcija
     glLoadIdentity();
     gluOrtho2D(0, windowWidth, windowHeight, 0);
     
@@ -501,6 +491,8 @@ void printWinner(float windowWidth, float windowHeight, int winner, int mode) {
 
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, c[i]);
+
+    glPopMatrix();
 }
 
 /**
@@ -510,6 +502,7 @@ void printNewGamePrompt(float windowWidth, float windowHeight) {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
 
+    // Ortogonalna projekcija
     glLoadIdentity();
     gluOrtho2D(0, windowWidth, windowHeight, 0);
     
@@ -538,6 +531,8 @@ void printNewGamePrompt(float windowWidth, float windowHeight) {
     glRasterPos2f(2.2*windowWidth/5,2.8*windowHeight/15);
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    glPopMatrix();
 }
 
 /**
@@ -547,6 +542,7 @@ void printDifficultyPrompt(float windowWidth, float windowHeight) {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
 
+    // Ortogonalna projekcija
     glLoadIdentity();
     gluOrtho2D(0, windowWidth, windowHeight, 0);
     
@@ -580,4 +576,6 @@ void printDifficultyPrompt(float windowWidth, float windowHeight) {
     glRasterPos2f(2.4*windowWidth/5,3.1*windowHeight/15);
     for(i=0; c[i]; i++)
         glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c[i]);
+
+    glPopMatrix();
 }

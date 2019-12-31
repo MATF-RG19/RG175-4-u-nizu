@@ -19,8 +19,6 @@ void drawWinningCombo(float* tokens, float radius, GLfloat* diffuseCoeffs);
 
 void setLightingParams();
 
-void getCameraCoords(float r, float theta, float phi, float* x, float* y, float* z);
-
 void printInstructions(float windowWidth, float windowHeight);
 void printWinner(float windowWidth, float windowHeight, int winner, int mode);
 void printNewGamePrompt(float windowWidth, float windowHeight);
