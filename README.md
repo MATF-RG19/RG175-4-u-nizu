@@ -47,7 +47,7 @@ direktorijum i naredbom:
 
 Eventualno:
 
-> gcc -o 4_u_nizu main.c drawing.c gamelib.c -lGL -lGLU -lglut -Wall -Wextra -lm
+> gcc -o 4_u_nizu main.c drawing.c gamelib.c -lGL -lGLU -lglut -lm
 
 Pokrenuti izvrsni fajl 4_u_nizu navodjenjem njegove putanje. Npr. pozicioniranjem u direktorijum gde je izvrsni fajl, pozvati:
 
