@@ -47,50 +47,37 @@ void drawBoard(float x, float y, float z, float w, float radius) {
     drawTable(x, y, z-w, radius);
 
     // ostali delovi su svetliji
-    // GLfloat diffuse_coeffs2[] = { 0.1, 0.1, 0.4, 1 };
     diffuseCoeffs[2] = 0.4;
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
-    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
     
     // crta se prednja ploca
     drawTable(x, y, z, radius);
 
     diffuseCoeffs[2] = 0.3;
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
-    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
     // Spajanje ploca unutrasnjim pregradama i spoljasnjim ivicama
     float border = radius/4;
+
+    // Pocetne koordinate.
     float startX = x - radius - border;
     float endX = startX + 14*radius + 8*border;
     float startY = y + radius + border;
     float endY = startY - 12*radius - 7*border;
     
     glBegin(GL_POLYGON);
-        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, 0);
-        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, -w);
-        glNormal3f(endX, endY, 1);
         glVertex3f(endX, endY, -w);
-        glNormal3f(endX, endY, 1);
         glVertex3f(endX, endY, 0);
     glEnd();
     
     glBegin(GL_POLYGON);
-        glNormal3f(startX, startY, 1);
         glVertex3f(startX, startY, 0);
-        glNormal3f(startX, startY, 1);
         glVertex3f(startX, startY, -w);
-        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, -w);
-        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, 0);
     glEnd();
 
@@ -98,26 +85,18 @@ void drawBoard(float x, float y, float z, float w, float radius) {
     int i;
     for(i=0; i<6; i++, startX += 2*radius + border) {
         glBegin(GL_POLYGON);
-            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, 0);
-            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, -w);
-            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, -w);
-            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, 0);
         glEnd();
     }
     
     startX += border/2;
     glBegin(GL_POLYGON);
-        glNormal3f(startX, startY, 1);
         glVertex3f(startX, startY, 0);
-        glNormal3f(startX, startY, 1);
         glVertex3f(startX, startY, -w);
-        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, -w);
-        glNormal3f(startX, endY, 1);
         glVertex3f(startX, endY, 0);
     glEnd();
 }
@@ -154,13 +133,9 @@ void drawTable(float x, float y, float z, float radius) {
     startY = radius + y, endY = startY - 12*radius - 5*width;
     for(i=0; i<8; i++) {
         glBegin(GL_POLYGON);
-            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, z);
-            glNormal3f(endX, startY, 1);
             glVertex3f(endX, startY, z);
-            glNormal3f(endX, endY, 1);
             glVertex3f(endX, endY, z);
-            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, z);
         glEnd();
         startX += 2*radius + width;
@@ -171,13 +146,9 @@ void drawTable(float x, float y, float z, float radius) {
     startY = y + radius + width, endY = startY - width;
     for(i=0; i<7; i++) {
         glBegin(GL_POLYGON);
-            glNormal3f(startX, startY, 1);
             glVertex3f(startX, startY, z);
-            glNormal3f(endX, startY, 1);
             glVertex3f(endX, startY, z);
-            glNormal3f(endX, endY, 1);
             glVertex3f(endX, endY, z);
-            glNormal3f(startX, endY, 1);
             glVertex3f(startX, endY, z);
         glEnd();
         startY -= (2*radius + width);
@@ -199,42 +170,31 @@ void drawCorners(float x, float y, float z, float radius) {
 
     // Iscrtavaju se 4 coska kvadrata ogranicena upisanim krugom
     glBegin(GL_POLYGON);
-        glNormal3f(radius + x, radius + y, 1);
         glVertex3f(radius + x, radius + y, z);
         for(i=0; i<7; i++, angle += baseAngle) {
-            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
         }
     glEnd();
     
     angle -= baseAngle;
     glBegin(GL_POLYGON);
-        glNormal3f(-radius + x, radius + y, 1);
         glVertex3f(-radius + x, radius + y, z);
-        for(i=0; i<7; i++, angle += baseAngle) {
-            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
+        for(i=0; i<7; i++, angle += baseAngle)
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
-        }
     glEnd();
     
     angle -= baseAngle;
     glBegin(GL_POLYGON);
-        glNormal3f(-radius + x, -radius + y, 1);
         glVertex3f(-radius + x, -radius + y, z);
-        for(i=0; i<7; i++, angle += baseAngle) {
-            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
+        for(i=0; i<7; i++, angle += baseAngle)
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
-        }
     glEnd();
 
     angle -= baseAngle;
     glBegin(GL_POLYGON);
-        glNormal3f(radius + x, -radius + y, 1);
         glVertex3f(radius + x, -radius + y, z);
-        for(i=0; i<7; i++, angle += baseAngle) {
-            glNormal3f(cos(angle)*radius + x, sin(angle)*radius + y, 1);
+        for(i=0; i<7; i++, angle += baseAngle)
             glVertex3f(cos(angle)*radius + x, sin(angle)*radius + y, z);
-        }
     glEnd();
 }
 /** 
@@ -263,6 +223,7 @@ void drawToken(token* t , float radius) {
     // ugao za iteraciju
     float angle = M_PI/12;
     
+    // U strukturi token se cuvaju x,y koordinate za taj zeton
     const float x = t->x;
     const float y = t->y;
     const float z = -0.01; // z-koordinata prednjeg kruga
@@ -272,36 +233,28 @@ void drawToken(token* t , float radius) {
 
     // prednji krug
     glBegin(GL_POLYGON);
-        for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle) {
-            glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
+        for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle)
             glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, z);
-        }
     glEnd();
     
     // zadnji krug
     glBegin(GL_POLYGON);
-        for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle) {
-            glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
+        for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle)
             glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, z - w);
-        }
     glEnd();
 
     // ivice zetona su tamnije
-    GLfloat diffuse_coeffs2[] = { 0.3, 0, 0, 1 }; // crvena za player = '1'
+    GLfloat diffuseCoeffs2[] = { 0.3, 0, 0, 1 }; // crvena za player = '1'
     if(t->player == '2')
-       diffuse_coeffs2[1] = 0.3; // zuta za player = '2'
+       diffuseCoeffs2[1] = 0.3; // zuta za player = '2'
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambientCoeffs);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_coeffs2);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, specularCoeffs);
-    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseCoeffs2);
     
     // crta se ivica zetona
     float tmpZ = z;
     int i;
     glBegin(GL_TRIANGLE_STRIP);
         for(i=0; i<26; i++,tmpAngle += angle) {
-            glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
             glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, tmpZ);
             if(tmpZ == z)
                 tmpZ -= w;
@@ -341,18 +294,14 @@ void drawWinningCombo(float* tokens, float radius, GLfloat* diffuseCoeffs) {
 
         // prednji krug
         glBegin(GL_POLYGON);
-            for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle) {
-                glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
-            glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, z);
-            }
+            for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle)
+                glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, z);
         glEnd();
     
         // zadnji krug
         glBegin(GL_POLYGON);
-            for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle) {
-                glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
+            for(tmpAngle=0; tmpAngle<2*M_PI; tmpAngle += angle)
                 glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, z - w);
-            }
         glEnd();
     
         // crta se ivica zetona
@@ -360,7 +309,6 @@ void drawWinningCombo(float* tokens, float radius, GLfloat* diffuseCoeffs) {
         int i;
         glBegin(GL_TRIANGLE_STRIP);
             for(i=0; i<26; i++,tmpAngle += angle) {
-                glNormal3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, 1);
                 glVertex3f(cos(tmpAngle)*radius + x, sin(tmpAngle)*radius + y, tmpZ);
                 if(tmpZ == z)
                     tmpZ -= w;

@@ -8,52 +8,62 @@
 #include "gamelib.h"
 #include "structlib.h"
 
+// Id animacije za pad/odskok zetona
 #define TIMER_ID 1
+// Id animacije za treperenje zetona
 #define TIMER_ID2 2
+
 #define TIMER_INTERVAL 10
 
+// Inicijalni vektor za pad/odskok zetona
 #define VY0 (-0.01)
 
 /**
  *  Uputstva za igru:
  *  
- *  levo,desno,dole - kontrole za 1. igraca
+ *  levo,dole,desno - kontrole za 1. igraca
  *        JKL       - kontrole za 2. igraca      
  *         R        - resetuje se tabla
  *        ESC       - izlaz iz programa
  *        WASD      - pomeranje kamere
+ *         V        - skrivanje/pokazivanje kontrola
 */
 
-// 2 igraca (1) ili igrac vs. bot (2)
+// Rezim za 2 igraca (1) ili igrac vs. bot (2)
 // U opstem slucaju govori da li je igra u toku
 static int mode = 0;
-// Rezim zavrsene igre, koristi je f-ja za ispis ishoda
+
+// Cuva rezim zavrsene igre, koristi je f-ja za ispis ishoda
 static int prevMode = 0;
+
 // 1,2 ili 3 za nereseno, uslovna promenljiva za ispis ishoda
 static int winner = 0;
+
 // Bira se tezina igre i po tome se odredjuje dubina za minimax
 static int depth = 0;
+
 // Trenutni id igraca
 static char player = '1';
 
 // Uslovna promenljiva koja stiti tok programa od odredjenih bagova
 static int alreadyReset = 0;
+
 // Uslovna promenljiva za prikazivanje uputstava
 static int toggleInstructions = 1;
 
 // Promenljiva za animaciju pada/odskoka zetona
 static int animation = 0;
-
 // Promenljiva za animaciju treperenja dobitne kombinacije zetona
 static int animation2 = 0;
-// Sadrzace koordinate centra 4 dobitna zetona [x1,y1,x2,y2,x3,y3,x4,y4]
-float* tokenCoords;
 // Animacija se vrsi menjanjem diffuznih koeficijenata materijala zetona.
 GLfloat* winnerDiffuseCoeffs;
-// U svakom pozivu onTimer2() cini sabirak/umanjilac odgovarajucih koeficijenata.
+// U svakom pozivu onTimer2() cini sabirak za odgovarajuce koeficijenate.
 float coeffStep = 0.01;
 
-// Poluprecnik kruga svake celije
+// Sadrzace koordinate centra za svaki od 4 dobitna zetona [x1,y1,x2,y2,x3,y3,x4,y4]
+float* tokenCoords;
+
+// Poluprecnik kruga svake celije/zetona
 static const float radius = 0.1;
 // Horizontalno rastojanje izmedju centara krugova dve susedne kolone
 static float slotStep;
@@ -62,10 +72,10 @@ static float vY = VY0;
 
 // Zeton kojim se bira potez
 token currToken;
-// Kolona nad kojom je trenutno currToken, pomera sa tasterima <- i ->
+// Kolona nad kojom je trenutno currToken, pomera sa tasterima <-/-> ili J/K
 static int currCol = 3;
 
-// Trenutnu tablu igre
+// Tabla za igru
 gameBoard board;
 
 // Sferne koordinate kamere
@@ -80,15 +90,22 @@ static float eyeX;
 static float eyeY;
 static float eyeZ;
 
+// Dimenzije prozora
 static float windowWidth = 900;
 static float windowHeight = 700;
 
+// Callback funkcije
 static void onDisplay(void);
 static void onReshape(int width, int height);
 static void onKeyboard(unsigned char key, int x, int y);
 static void onArrowKey(int key, int x, int y);
+
+// Implementira pad/odskok zetona
 static void onTimer(int value);
+// Implementira treperenje zetona
 static void onTimer2(int value);
+
+// Inicijalizacija na pocetku rada programa
 void initialize();
 
 int main(int argc, char** argv) {
@@ -116,6 +133,7 @@ void initialize() {
     glClearColor(0.6,0.6,0.6,0);
     glEnable(GL_DEPTH_TEST);
 
+    // Postavlja se korak za pomeranje zetona.
     slotStep  = 2*radius + radius/4;
 
     // Inicijalizuje se tabla
@@ -126,11 +144,12 @@ void initialize() {
     eyeY = r * cos(phi); 
     eyeZ = r * cos(theta) * sin(phi);
 
-    // Podesavaju se pocetne koordinate zetona kojim biramo potez
+    // Podesavaju se pocetne koordinate zetona kojim biramo potez (srednja kolona)
     currToken.x = 3 * slotStep;
     currToken.y = slotStep;
     currToken.player = player;
 
+    // Alokacija memorije za promenljive kljucne animaciju 2
     tokenCoords = malloc(8*sizeof(float));
     if(tokenCoords == NULL) {
         fprintf(stderr, "initialize() malloc fail.\n");
@@ -142,6 +161,8 @@ void initialize() {
         fprintf(stderr, "initialize() malloc fail.\n");
         exit(EXIT_FAILURE);
     }
+
+    // Pocetne vrednosti
     winnerDiffuseCoeffs[0] = winnerDiffuseCoeffs[1] = winnerDiffuseCoeffs[2] = 0.1;
     winnerDiffuseCoeffs[3] = 1;
 }
@@ -168,6 +189,7 @@ static void onDisplay(void) {
     glLoadIdentity();
     gluLookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
 
+    // Centriranje table i ostalih modela
     glTranslatef(-0.6, 0.2, 0);
 
     // Podesava osvetljenje.
@@ -179,6 +201,12 @@ static void onDisplay(void) {
     // Crta se zeton kojim se bira potez.
     drawToken(&currToken, radius);
     
+    /* 
+        Iscrtavaju se odigrani zetoni.
+        Po inicijalizaciji sve celije table su "popunjene" ali dok
+        oznaka igraca za pojedini zeton nije '1' ili '2',
+        oni se ne iscrtavaju.
+    */
     int i,j;
     for(i=0; i<6; i++)
         for(j=0; j<7; j++)
@@ -192,12 +220,15 @@ static void onDisplay(void) {
     /*
         Posto se za svaki od sledecih promptova treba koristiti ortogonalna
         projekcija, a u toku rada programa se 0 ili vise njih moze prikazivati
-        u isto vreme, svaka od funkcija za postavlja ortogonalnu projekciju.
+        u isto vreme, svaka od funkcija postavlja ortogonalnu projekciju.
     */
 
     /* 
         Ispisuje se prompt za izbor rezima igre (tasteri 1 ili 2)
         po pokretanju programa ili posle resetovanja.
+
+        Prvi uslov je kada rezim nije izabran, drugi obuhvata slucaj kada
+        je igra zavrsena ali jos nije resetovana.
     */
     if(!mode && !winner)
         printNewGamePrompt(windowWidth, windowHeight);
@@ -213,7 +244,7 @@ static void onDisplay(void) {
     if(toggleInstructions)
         printInstructions(windowWidth, windowHeight);
 	
-    // Ispisuje se pobednik u slucaju necije pobede i prompt za novu igru/izlaz.
+    // Ispisuje se ishod i prompt za novu igru/izlaz na kraju igre. 
     if(winner)
         printWinner(windowWidth, windowHeight, winner, prevMode);
 
@@ -324,7 +355,7 @@ static void onKeyboard(unsigned char key, int x, int y) {
             break;
 
         /*
-            Azuriraju se sfericke koordinate kamere,
+            Azuriraju se sferne koordinate kamere,
             konvertuju u Dekartov koord. sistem i osvezava prikaz.
         */ 
         case 'a':
@@ -500,6 +531,7 @@ static void onTimer(int value) {
     if(animation != 2 && 
         currToken.y <= board.tokens[board.topCol[currCol]][currCol].y) {
         
+        // Kraj animacije, resetovanje vektora.
         animation = 0;
         vY = VY0;
         
@@ -508,9 +540,10 @@ static void onTimer(int value) {
         
         // Tabla se preslikava u matricu karaktera (oznake igraca), efikasnije
         state* state = boardToState(&board);
-        int score = evaluate(state);
 
         // Proverava se da li je pobedio 2.igrac / racunar
+        int score = evaluate(state);
+
         if(score == -1000) {
             // Pobedio je 2.igrac / racunar.
 
@@ -602,30 +635,33 @@ static void onTimer(int value) {
             glutTimerFunc(300, onTimer, TIMER_ID);
             animation = 1;
         }
-        
+        // Oslobadja se memorija koju zauzima matrica karaktera.
         freeState(state);
 
         return;
     }
+    // U fazi 2 intenzitet vektora opada, inace raste.
     if(animation == 2)
         vY /= 2;
     else
         vY *= 1.2;
     
     currToken.y += vY;
+
     // Osigurava se da zeton ne padne nize od svog mesta.
     if(currToken.y < board.tokens[board.topCol[currCol]][currCol].y)
         currToken.y = board.tokens[board.topCol[currCol]][currCol].y;
     
     glutPostRedisplay();
 
+    // Ako animacija nije zavrsena.
     if (animation) {
         glutTimerFunc(TIMER_INTERVAL, onTimer, TIMER_ID);
     }
 }
 
 /**
- *  Pokrece se u slucaju necije pobede, dobitna kombinacija treperi.
+ *  U slucaju necije pobede dobitna kombinacija treperi.
 */
 static void onTimer2(int value) {
     if(value != TIMER_ID2)

@@ -8,6 +8,8 @@
 
 /**
  *  Biblioteka za iscrtavanje elemenata za igru, osvetljenje i slicno
+ * 
+ *  Detaljnije u drawing.c
 */
 
 void drawTable(float x, float y, float z, float radius);

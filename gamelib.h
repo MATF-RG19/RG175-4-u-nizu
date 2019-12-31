@@ -9,6 +9,8 @@
 
 /**
  *  Biblioteka za logiku igre
+ * 
+ *  Detaljnije u gamelib.c
 */
 
 gameBoard gameBoardInit(float x, float y, float slotStep);

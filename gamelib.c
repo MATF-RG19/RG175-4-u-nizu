@@ -25,7 +25,7 @@ int validMove(gameBoard* board, int col) {
  * 
  *  gameBoard* board - pokazivac na tablu
  *  int col          - izabrana kolona, mora biti u opsegu [0,6]
- *  char player       - broj igraca, mora biti '1' ili '2'
+ *  char player      - broj igraca, mora biti '1' ili '2'
 */
 void makeMove(gameBoard* board, int col, char player) {
 
@@ -35,20 +35,15 @@ void makeMove(gameBoard* board, int col, char player) {
 
 /**
  *  Vraca pokazivac na praznu tablu. Svakom zetonu koji ce se eventualno naci u tabli
- *  vec su podesene koordinate.
+ *  vec su podesene koordinate. Dok je oznaka za igraca za neki zeton '0', on se nece
+ *  iscrtavati.
  *  
- *  float x, y  - koordinate centra prednjeg kruga u ravni za gornji levi zeton
+ *  float x, y  - koordinate centra prednjeg kruga u z-ravni za gornji levi zeton
  *  float korak - korak za svaku koordinatu do susednog zetona, pozitivna vrednost
 */
 gameBoard gameBoardInit(float x, float y, float slotStep) {
     
     gameBoard board;
-    /*
-    gameBoard* board = malloc(sizeof(gameBoard*));
-    if(board == NULL) {
-        fprintf(stderr, "gameBoardInit() malloc fail\n");
-        exit(EXIT_FAILURE);
-    }*/
 
     // Alocira se prostor za sve celije table 6x7
     board.tokens = malloc(6*sizeof(token**));
@@ -85,13 +80,15 @@ gameBoard gameBoardInit(float x, float y, float slotStep) {
 
             /* Zeton sa player = '0' se nece crtati jer u trenutnoj igri ne postoji,
                vec samo u memoriji. 
-               Na pocetku je cela tabla prazna pa svaki zeton ima vrednost '0' za token.player
+               Na pocetku je cela tabla prazna pa svaki zeton 
+               ima vrednost '0' za token.player
             */
             board.tokens[i][j].player = '0';
         }
     }
 
-    // Na pocetku su sve kolone slobodne pa ce zeton padati na dno table, odnosno red sa indeksom 5
+    // Na pocetku su sve kolone slobodne pa ce zeton padati na dno table, 
+    // odnosno u red table sa indeksom 5.
     for(j=0; j<7; j++)
         board.topCol[j] = 5;
 
@@ -111,9 +108,13 @@ void freeGameBoard(gameBoard* board) {
 }
 
 /**
- *  Mapira oznake igraca za svaki zeton u matricu karaktera
+ *  Preslikava oznake igraca za svaki zeton table u matricu karaktera.
+ * 
+ *  Dobijena matrica se koristi za evaluaciju stanja igre.
 */
 state* boardToState(gameBoard* board) {
+    
+    // Alocira se prostor za strukturu state.
     state* state = malloc(sizeof(state));
     if(state == NULL) {
         fprintf(stderr, "boardToState() malloc fail\n");
@@ -125,6 +126,8 @@ state* boardToState(gameBoard* board) {
         fprintf(stderr, "boardToState() malloc fail\n");
         exit(EXIT_FAILURE);
     }
+
+    // Kopiraju se oznake igraca kao i vrhovi kolona.
     int i, j;
     for(i=0; i<6; i++) {
         state->st[i] = malloc(7);
@@ -377,15 +380,21 @@ int evaluate(state* state) {
     
     return score;
 }
+
 /**
  *  Poziva se u slucaju necije pobede.
  * 
- *  U tabli se pretrazuje dobitna kombinacija. Koordinate centra tih zetona se upisuju
- *  u niz tokens pa se iz table "brisu" (postavljanjem promenljive player na '0') da bi
- *  se posebno iscrtavali zbog animacije.
+ *  U tabli se pretrazuje dobitna kombinacija. Koordinate centra tih zetona se 
+ *  upisuju u niz tokens pa se iz table "brisu" 
+ *  (postavljanjem promenljive player na '0') da bi se 
+ *  posebno iscrtavali zbog animacije.
+ * 
+ *  Podrazumeva se da se f-ja poziva samo u slucaju necije pobede.
 */
 void getWinningCombo(gameBoard* board, float* tokens) {
+    // Tabla se preslikava u efikasniju matricu karaktera.
     state* st = boardToState(board);
+
     /*
         Proverava se da li ima 4 u nizu po redovima.
         Ako u i-tom redu u koloni j=3 nema zetona, nema sigurno pobednika u tom redu,
@@ -492,7 +501,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
     node.value = evaluate(startState);
     node.col = 0;
     
-    // Proverava se da li je puna tabla tj da li su svi top[j]=-1
+    // Proverava se da li je puna tabla tj. da li su svi top[j]=-1
     int unfinished = 7, j;
     for(j=0; j<7; j++)
         unfinished += startState->top[j];
@@ -516,13 +525,16 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
             
             minMax minVal = minimax(next, depth-1, '2', alpha, beta);
             
+            // Cvor se azurira ako je nadjena bolja vrednost.
             if(minVal.value > node.value) {
                 node.value = minVal.value;
                 node.col = i;
                 alpha = node.value > alpha? node.value : alpha;
             }
+
             freeState(next);
 
+            // Alfa-beta odsecanje
             if(beta <= alpha)
                 break;
         }
@@ -540,6 +552,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
 
             minMax maxVal = minimax(next, depth-1, '1', alpha, beta);
             
+            // Cvor se azurira ako je nadjena bolja vrednost.
             if(maxVal.value < node.value) {
                 node.value = maxVal.value;
                 node.col = i;
@@ -548,6 +561,7 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
 
             freeState(next);
             
+            // Alfa-beta odsecanje
             if(beta <= alpha)
                 break;
         }
@@ -559,8 +573,11 @@ minMax minimax(state* startState, int depth, char player, int alpha, int beta) {
 
 /**
  *  Kopira stanje src i vraca pokazivac na kopiju.
+ * 
+ *  Pomocna funkcija pri trazenju sledecih stanja igre.
 */
 state* copyState(state* src) {
+    // Alociranje prostora za novo stanje.
     state* dest = malloc(sizeof(state));
     if(dest == NULL) {
         fprintf(stderr, "copyState malloc fail\n");
@@ -573,6 +590,7 @@ state* copyState(state* src) {
         exit(EXIT_FAILURE);
     }
 
+    // Kopiranje oznaka za igraca.
     int i;
     for(i=0; i<6; i++) {
         dest->st[i] = malloc(7);
@@ -583,6 +601,7 @@ state* copyState(state* src) {
         memcpy(dest->st[i], src->st[i], 7);
     }
 
+    // Alociranje memorije i kopiranje vrednosti niza top.
     dest->top = malloc(7*sizeof(short));
     if(dest->top == NULL) {
         fprintf(stderr, "copyState malloc fail\n");
@@ -595,28 +614,38 @@ state* copyState(state* src) {
     return dest;
 }
 
-/**
+/** 
+ *  Racunar bira potez.
+ * 
  *  Koristi algoritam minimax i uz obradu nekih specijalnih slucajeva vraca broj
- *  kolone odnosno potez koji bi odigrao racunar
+ *  kolone odnosno potez koji bi odigrao racunar.
  * 
  *  state* state - trenutno stanje igre
  *  int depth    - dubina pretrage za minimax
 */
 int botMakeMove(state* state, int depth) {
+    // Biranje poteza.
     minMax bot = minimax(state,depth,'2',INT_MIN, INT_MAX);
             
     /*
         Ako minimax izracuna vec u prvoj grani da ce izgubiti, on "odustaje"
-        od odbrane jer predvidja kako ce igrac birati poteze, sto moze da izgleda
-        cudno.
+        od odbrane jer predvidja da ce igrac birati najbolje moguce poteze, 
+        po algoritmu minimax, sto je nerealisticno jer igrac igra relativno brzo 
+        i "plitko", a cesto cak i ne vidi potencijalno pogodna stanja za njega.
 
-        Npr. ako je igrac vec matirao racunar tj ima npr vec odmah 2 kolone u kojima
-        moze postici pobedu, racunar nece ni pokusati da se brani, da npr odigra u
+        Ako racunar proceni da je matiran (i da je igrac isto to primetio), 
+        (npr. ima 3 zetona u nizu i slobodno mesto i levo i desno)
+        racunar nece ni pokusati da se brani, da npr odigra u
         jednoj od tih kolona kao sto bi uradio covek, vec ce izabrati prvu slobodnu
-        kolonu.
+        kolonu. Prirodnije bi bilo da izabere jednu od "pretecih" kolona. Sta vise,
+        ako je tabla relativno dobro popunjena, realno je ocekivati da igrac mozda
+        to stanje stvari nije ni primetio i da ce odigrati nesmotreno. Tada bi racunar
+        u stvari mogao izbeci mat.
 
-        Cak je mnogo veci problem kada izracuna da ce biti matiran kroz nekoliko poteza,
-        i opet bira prvu slobodnu kolonu jer mu je "svejedno".
+        Jos mnogo veci problem nastupa kada racunar izracuna da ce biti matiran 
+        kroz nekoliko poteza, i opet bira prvu slobodnu kolonu jer mu je "svejedno",
+        a vrlo je verovatno da igrac nikada nije ni primetio tu potencijalno pogodnu
+        situaciju za njega.
 
         Po sledecoj klauzi racunar bira potez koji bi izabrao prvi igrac, za depth = 1 
     */
@@ -624,11 +653,12 @@ int botMakeMove(state* state, int depth) {
     bot = minimax(state,1,'1',INT_MIN, INT_MAX);
             
     /*
-        Problem nastaje kada racunar nadje pobedu vec u najlevljoj grani i vrsi odsecanje,
-        iako bi mogao u jednom potezu izboriti pobedu u nekoj drugoj koloni.
+        Problem nastaje kada racunar nadje pobedu npr. vec u najlevljoj grani 
+        ali na vecoj dubini i vrsi odsecanje,
+        iako bi mogao vec u jednom potezu izboriti pobedu u nekoj drugoj koloni.
 
-        U narednom bloku se resava takav slucaj. "Rucno" se odigravaju potezi za moguce kolone
-        i ako se u jednoj ostvaruje pobeda, bira se ta kolona.
+        U narednom bloku se resava takav slucaj. "Rucno" se odigravaju potezi 
+        za moguce kolone i ako se u jednoj ostvaruje pobeda, bira se ta kolona.
     */
     if(bot.value == -1000) {
         int j;

@@ -20,8 +20,8 @@ typedef struct token_ {
  *  Podaci o trenutnoj igri
  * 
  *  token** tokens - matrica zetona
- *  int* topCol    - topCol[j] treba da sadrzi indeks reda prvog slobodnog polja kolone j
- *                   ili -1 ako je kolona j puna do vrha  
+ *  short* topCol  - topCol[j] treba da sadrzi indeks reda prvog slobodnog polja 
+ *                   kolone j ili -1 ako je kolona j puna do vrha  
 */
 typedef struct gameBoard_ {
     token** tokens;
@@ -31,8 +31,8 @@ typedef struct gameBoard_ {
 /**
  *  Stanje igre
  * 
- *  char** st      - matrica zetona, '1' i '2' za 1./2. igraca, '0' kada nema zetona
- *  short* top     - top[j] cuva prvu slobodnu poziciju u j-toj koloni ili -1 ako je nema
+ *  char** st  - matrica zetona, '1' i '2' za 1./2. igraca, '0' kada nema zetona
+ *  short* top - top[j] cuva prvu slobodnu poziciju u j-toj koloni ili -1 ako je puna
 */
 typedef struct state_ {
     char** st;
